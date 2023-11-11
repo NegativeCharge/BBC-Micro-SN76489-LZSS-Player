@@ -1,0 +1,39 @@
+{
+    "version": "2.0.0",
+    "command": "cmd",
+    "echoCommand": true,
+    "args": [
+        "/C"
+    ],
+    "tasks": [
+        {
+            "label": "NanoPlayer.ssd",
+            "type": "shell",
+            "args": [
+                "make.bat"
+            ],
+            "problemMatcher": {
+                "owner": "6502",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            },
+            "group": "build"
+        },{
+            "label": "Run in B-em",
+            "type": "shell",
+            "args": [
+                "start \"b-em.exe -disc .\\NanoPlayer.ssd\""
+            ],
+            "group": "test"
+        }
+    ]
+}
