@@ -55,7 +55,7 @@ align $100
     ldy #0
     jsr get_byte
 .clear
-    ; Read just init value and store into buffer and POKEY
+    ; Read just init value and store into buffer and SN76489
     jsr get_byte
     sta registers, x
     sty chn_copy, x
@@ -95,7 +95,7 @@ align $100
 
     ldx #10
 
-    ; Loop through all "channels", one for each POKEY register
+    ; Loop through all "channels", one for each SN76489 register
 .chn_loop
     lda chn_copy, x    ; Get status of this stream
     bne do_copy_byte   ; If > 0 we are copying bytes

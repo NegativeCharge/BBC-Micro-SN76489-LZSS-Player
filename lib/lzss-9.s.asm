@@ -54,7 +54,7 @@ align $100
     ldx #8
     ldy #0
 .clear
-    ; Read just init value and store into buffer and POKEY
+    ; Read just init value and store into buffer and SN76489
     jsr get_byte
     sta registers, x
     sty chn_copy, x
@@ -96,7 +96,7 @@ align $100
     sta chn_bits
     ldx #8
 
-    ; Loop through all "channels", one for each POKEY register
+    ; Loop through all "channels", one for each SN76489 register
 .chn_loop
     lsr chn_bits
     bcs skip_chn       ; C=1 : skip this channel

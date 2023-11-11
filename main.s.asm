@@ -39,7 +39,7 @@ INCLUDE ".\lib\lzss-9.s.asm"
 
 align $100
 .song_data
-    INCBIN "tracks\gf2title.lz16-9"
+    INCBIN "tracks\gf2-title.lz16-9"
 .song_end
 
 .end
