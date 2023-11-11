@@ -3,14 +3,14 @@ INCLUDE "constants.h.asm"
 ORG     ZERO_PAGE_START
 GUARD   ZERO_PAGE_END
 
-INCLUDE ".\lib\lzss.h.asm"
+INCLUDE ".\lib\lzss-9.h.asm"
 
 ORG     BASE
 GUARD   SCREEN
 
 .start
 
-INCLUDE ".\lib\lzss.s.asm"
+INCLUDE ".\lib\lzss-9.s.asm"
 
 .init
     \\ Set MODE 7
@@ -36,6 +36,11 @@ INCLUDE ".\lib\lzss.s.asm"
     cli                         ; Enable interrupts
 
     rts
+
+align $100
+.song_data
+    INCBIN "tracks\gf2title.lz16-9"
+.song_end
 
 .end
 

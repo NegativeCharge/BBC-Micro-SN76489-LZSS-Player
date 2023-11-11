@@ -39,11 +39,6 @@ song_ptr = get_byte + 1
 align $100
 .buffers SKIP 256 * 9
 
-align $100
-.song_data
-    INCBIN "tracks\test.lz16"
-.song_end
-
 .play
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
