@@ -10,13 +10,17 @@ GUARD   SCREEN
 
 .start
 
+IF DEBUG
+    INCLUDE ".\debug.s.asm"
+ENDIF
+
 INCLUDE ".\lib\lzss-9.s.asm"
 
 .init
-    \\ Set MODE 7
+    \\ Set MODE
 	lda #22
     jsr OSWRCH
-	lda #7
+	lda #MODE
     jsr OSWRCH
 
     \\ Disable cursor

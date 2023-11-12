@@ -89,6 +89,11 @@ align $100
 ; Play one frame of the song
 ;
 .play_frame {
+
+IF DEBUG
+    jsr raster_on
+ENDIF
+
     lda #>buffers
     sta bptr+1
 
@@ -143,6 +148,11 @@ align $100
     inc cur_pos
 
     jsr output
+
+IF DEBUG
+    jsr raster_off
+ENDIF
+
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

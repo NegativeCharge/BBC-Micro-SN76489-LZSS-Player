@@ -26,3 +26,18 @@
     jmp OSWRCH
 }
 
+.raster_on {
+    pha
+    lda     #$00+(3EOR7)
+    sta     $FE21
+    pla
+    rts
+}
+
+.raster_off {
+    pha
+    lda     #$00+(0EOR7)
+    sta     $FE21
+    pla
+    rts
+}

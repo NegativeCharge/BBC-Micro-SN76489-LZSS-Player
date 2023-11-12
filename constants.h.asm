@@ -12,17 +12,10 @@ SHEILA_SYS_VIA_PORT_A   = $fe4f
 
 ZERO_PAGE_START         = $80
 ZERO_PAGE_END           = $ff
+
+MODE                    = 5
 BASE                    = $1100
-SCREEN                  = $7c00
+SCREEN                  = $5800
 
 TRACK_SPEED             = $4e1e     \\ 50Hz = $4e1e, 2000Hz = $01f2 (1000000/x - 2)
-DEBUG                   = TRUE
-
-Exo_addr                = $880
-Exo_small_buffer_addr   = $440
-Exo_large_buffer_addr   = $7400
-
-UNCOMPRESSED_TRACK      = FALSE
-EXOMISER_TRACK          = FALSE
-HUFFMUNCH_TRACK         = FALSE
-LZSS_TRACK              = TRUE
+DEBUG                   = FALSE
