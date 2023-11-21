@@ -3,7 +3,11 @@ INCLUDE "constants.h.asm"
 ORG     ZERO_PAGE_START
 GUARD   ZERO_PAGE_END
 
-INCLUDE ".\lib\lzss-9.h.asm"
+INCLUDE LZSS_PLAYER_H
+
+IF SHOW_UI
+    INCLUDE ".\lib\ui.h.asm"
+ENDIF
 
 ORG     BASE
 GUARD   SCREEN
@@ -14,20 +18,19 @@ IF DEBUG
     INCLUDE ".\debug.s.asm"
 ENDIF
 
-INCLUDE ".\lib\lzss-9.s.asm"
+IF SHOW_UI
+    INCLUDE ".\lib\ui.s.asm"
+ENDIF
+
+INCLUDE LZSS_PLAYER_S
 
 .init
-    \\ Set MODE
-	lda #22
-    jsr OSWRCH
-	lda #MODE
-    jsr OSWRCH
 
-    \\ Disable cursor
-	lda #$0a
-    sta $fe00
-	lda #$20
-    sta $fe01
+IF SHOW_UI
+    ldx #MODE
+    jsr set_mode
+    jsr disable_cursor
+ENDIF
 
     lda #<TRACK_SPEED
     sta SHEILA_SYS_VIA_R4_T1C_L
@@ -35,15 +38,16 @@ INCLUDE ".\lib\lzss-9.s.asm"
     sta SHEILA_SYS_VIA_R5_T1C_H
 
     jsr sn_chip_reset
+
     sei                         ; Disable interrupts
-    jmp play
+    jsr play
     cli                         ; Enable interrupts
 
-    rts
+    jmp *
 
 align $100
 .song_data
-    INCBIN "tracks\gf2-title.lz16-9"
+    INCBIN FILENAME
 .song_end
 
 .end

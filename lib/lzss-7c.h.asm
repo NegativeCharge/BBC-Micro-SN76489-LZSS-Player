@@ -1,5 +1,5 @@
 ;
-; LZSS Compressed SAP player for 16 match bits
+; LZSS Compressed SN76489 player for 16 match bits
 ; --------------------------------------------
 ;
 ; (c) 2020 DMSC
@@ -18,10 +18,18 @@
 ; the `test.lz16` file at assembly time.
 ;
 ; The plater needs 256 bytes of buffer for each SN76489 register stored, for a
-; full SN raw register file this is 2816 bytes.
+; full SN 7-stream compressed register file this is 1,792 bytes.
 ;
 
-.chn_copy    SKIP     11
-.chn_pos     SKIP     11
-.bptr        SKIP     2
-.cur_pos     SKIP     1
+.chn_copy           SKIP     7
+.chn_pos            SKIP     7
+.bptr               SKIP     2
+.cur_pos            SKIP     1
+.chn_bits           SKIP     1
+
+.last_noise_byte    SKIP     1
+.last_atten_byte    SKIP     1
+
+.current_reg        SKIP     1
+.temp_a             SKIP     1
+.temp_x             SKIP     1

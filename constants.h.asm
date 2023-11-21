@@ -13,9 +13,33 @@ SHEILA_SYS_VIA_PORT_A   = $fe4f
 ZERO_PAGE_START         = $80
 ZERO_PAGE_END           = $ff
 
-MODE                    = 5
-BASE                    = $1100
-SCREEN                  = $5800
+; %1cctdddd
+;   |||````-- Data
+;   ||`------ Type         determines whether to latch volume (1) or tone/noise (0) data 
+;   ``------- Channel      00, 01, 10, 11
 
-TRACK_SPEED             = $4e1e     \\ 50Hz = $4e1e, 2000Hz = $01f2 (1000000/x - 2)
+; %0-DDDDDD
+;   |``````-- Data
+;   `-------- Unused
+
+CH0TONELATCH            = %10000000
+CH0VOL                  = %10010000
+CH1TONELATCH            = %10100000
+CH1VOL                  = %10110000
+CH2TONELATCH            = %11000000
+CH2VOL                  = %11010000
+CH3TONELATCH            = %11100000
+CH3VOL                  = %11110000
+
+MODE                    = 7
+BASE                    = $1100
+SCREEN                  = $7c00
+
+TRACK_SPEED             = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
 DEBUG                   = FALSE
+DEBUG_RASTER            = FALSE
+SHOW_UI                 = TRUE
+
+FILENAME                = ".\tracks\lff.lz16-7c"
+LZSS_PLAYER_H           = ".\lib\lzss-7c.h.asm"
+LZSS_PLAYER_S           = ".\lib\lzss-7c.s.asm"

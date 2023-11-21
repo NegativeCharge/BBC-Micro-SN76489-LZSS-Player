@@ -41,3 +41,9 @@
     pla
     rts
 }
+
+.wait_for_vsync
+{
+    lda #19
+    jmp OSBYTE
+}

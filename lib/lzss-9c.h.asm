@@ -1,5 +1,5 @@
 ;
-; LZSS Compressed SAP player for 16 match bits
+; LZSS Compressed SN76489 player for 16 match bits
 ; --------------------------------------------
 ;
 ; (c) 2020 DMSC
@@ -21,8 +21,11 @@
 ; full SN raw register file this is 2816 bytes.
 ;
 
-.chn_copy    SKIP     9
-.chn_pos     SKIP     9
-.bptr        SKIP     2
-.cur_pos     SKIP     1
-.chn_bits    SKIP     1
+.chn_copy           SKIP     9
+.chn_pos            SKIP     9
+.bptr               SKIP     2
+.cur_pos            SKIP     1
+.chn_bits           SKIP     1
+
+.last_noise_byte    SKIP     1
+.last_atten_byte    SKIP     1

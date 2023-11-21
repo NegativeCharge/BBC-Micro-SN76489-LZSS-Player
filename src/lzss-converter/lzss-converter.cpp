@@ -11,7 +11,8 @@
  * 
  * BBC Micro modification: Negative Charge, 2023
  * 
- * Input should be in format [BYTE Tone 1 Latch][BYTE Tone 1 Data][BYTE Vol 1][BYTE Tone 2 Latch][BYTE Tone 2 Data][BYTE Vol 2][BYTE Tone 3 Latch][BYTE Tone 3 Data][BYTE Vol 3][BYTE Noise Latch][BYTE Noise Vol]
+ * For lzss-9 player, input should be in format [BYTE Tone 1 Latch][BYTE Tone 1 Data][BYTE Vol 1][BYTE Tone 2 Latch][BYTE Tone 2 Data][BYTE Vol 2][BYTE Tone 3 Latch][BYTE Tone 3 Data][BYTE Vol 3][BYTE Noise Latch][BYTE Noise Vol]
+ * For lzss-9c player, input should be in format [BYTE Tone 1 Latch][BYTE Tone 1 Data][BYTE Tone 2 Latch][BYTE Tone 2 Data][BYTE Tone 3 Latch][BYTE Tone 3 Data][BYTE Noise Latch][BYTE Vol 0|Vol 1][BYTE Vol 2|Vol Noise]
  * 
  * Compress with lzss-converter.exe -b 16 -o 8 -m 1 .\uncompressed\input.bin output.lz16-9
  */

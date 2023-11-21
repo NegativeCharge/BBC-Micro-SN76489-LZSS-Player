@@ -1,5 +1,5 @@
 ;
-; LZSS Compressed SAP player for 16 match bits
+; LZSS Compressed SN76489 player for 16 match bits
 ; --------------------------------------------
 ;
 ; (c) 2020 DMSC
@@ -12,17 +12,17 @@
 ;  Total match bits: 16 bits
 ;
 ; Compress using:
-;  lzss -b 16 -o 8 -m 1 input.bin test.lz16
+;  lzss -b 16 -o 8 -m 1 input.bin test.lz16-c
 ;
 ; Assemble this file with BeebAsm assembler, the compressed song is expected in
-; the `test.lz16` file at assembly time.
+; the `test.lz16-c` file at assembly time.
 ;
 ; The plater needs 256 bytes of buffer for each SN76489 register stored, for a
 ; full SN raw register file this is 2816 bytes.
 ;
 
 .registers   
-    EQUB 0,0,0,0,0,0,0,0,0
+    EQUB 0,0,0,0,0,0,0,0,0,0,0
 
 .bit_data    EQUB   1
 
@@ -44,7 +44,7 @@ align $100
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Song Initialization - this runs in the first tick:
 ;
-.init_song {
+.init_song
 
     ; Example: here initializes song pointer:
     ; sta song_ptr
@@ -53,6 +53,9 @@ align $100
     ; Init all channels:
     ldx #8
     ldy #0
+    sty last_noise_byte
+    sty last_atten_byte
+    
 .clear
     ; Read just init value and store into buffer and SN76489
     jsr get_byte
@@ -69,12 +72,11 @@ align $100
     sty cur_pos
 
     jsr output
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Wait for next frame
 ;
-.wait_frame {
+.wait_frame
     lda #%01000000             ; Timer 1 mask bit
     bit SHEILA_SYS_VIA_R13_IFR
     bne processSysViaT1
@@ -83,14 +85,13 @@ align $100
 
 .processSysViaT1
     sta SHEILA_SYS_VIA_R13_IFR
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Play one frame of the song
 ;
-.play_frame {
+.play_frame
 
-IF DEBUG
+IF DEBUG_RASTER
     jsr raster_on
 ENDIF
 
@@ -139,6 +140,7 @@ ENDIF
     sta (bptr), y
 
 .skip_chn
+
     ; Increment channel buffer pointer
     inc bptr+1
 
@@ -149,23 +151,20 @@ ENDIF
 
     jsr output
 
-IF DEBUG
+IF DEBUG_RASTER
     jsr raster_off
 ENDIF
-
-}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Check for ending of song and jump to the next frame
 ;
-.check_end_song {
+.check_end_song
     lda song_ptr + 1
     cmp #>song_end
     bne wait_frame
-    lda song_ptr
+    lda song_ptr + 0
     cmp #<song_end
     bne wait_frame
-}
 
 .reset
     lda #%01000000
@@ -202,11 +201,75 @@ ENDIF
 }
 
 .output {
-    ldy #9
+    ldy #7
     ldx #0
 .reg_loop
     lda registers,x
+    cpx #6
+    bne write_to_sn
+    cmp last_noise_byte
+    beq write_noise_vol
+
+    sta last_noise_byte
+.write_to_sn
     jsr sn_chip_write
+
+.vol_check_1
+    cpx #1
+    bne vol_check_2
+
+    ldx #7
+    lda registers,x
+    lsr a:lsr a:lsr a:lsr a
+    ora #CH0VOL
+    jsr sn_chip_write
+    ldx #1
+
+    jmp cont
+
+.vol_check_2
+    cpx #3
+    bne vol_check_3
+
+    ldx #7
+    lda registers,x
+    and #&0f
+    ora #CH1VOL
+    jsr sn_chip_write
+    ldx #3
+
+    jmp cont
+
+.vol_check_3
+    cpx #5
+    bne vol_check_4
+
+    ldx #8
+    lda registers,x
+    lsr a:lsr a:lsr a:lsr a
+    ora #CH2VOL
+    jsr sn_chip_write
+    ldx #5
+
+    jmp cont
+
+.vol_check_4
+    cpx #6
+    bne cont
+
+.write_noise_vol
+    ldx #8
+    ldy #1
+    lda registers,x
+    cmp last_atten_byte
+    beq cont
+ 
+    sta last_atten_byte
+    and #&0f
+    ora #CH3VOL
+    jsr sn_chip_write
+
+.cont
     inx
     dey
     bne reg_loop
