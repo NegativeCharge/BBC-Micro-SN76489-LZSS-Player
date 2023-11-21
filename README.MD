@@ -15,7 +15,7 @@ The second player uses 7 compressed streams in the format:
 
 `[Vol 0|Tone 0 (bottom 4 bits)][Tone 0 (top 6 bits)][Vol 1|Tone 1 (bottom 4 bits)][Tone 1 (top 6 bits)][Vol 2|Tone 2 (bottom 4 bits)][Tone 2 (top 6 bits)][Vol 3|Noise (bottom 4 bits)]`
 
-#Lempel–Ziv–Storer–Szymanski
+# Lempel–Ziv–Storer–Szymanski
 
 Lempel–Ziv–Storer–Szymanski (LZSS) is a lossless data compression algorithm, a derivative of LZ77, that was created in 1982 by James A. Storer and Thomas Szymanski.
 
