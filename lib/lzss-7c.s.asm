@@ -209,7 +209,7 @@ ENDIF
 .reg_loop
     lda decoded_registers,x
 
-    cpx #10
+    cpx #9
     bne write_to_sn
     cmp last_noise_byte
     beq cont
@@ -217,10 +217,12 @@ ENDIF
     sta last_noise_byte
 
 .write_to_sn
-    cpx #11
+    cpx #10
     bne continue_write
     cmp last_atten_byte
     beq cont
+
+    sta last_atten_byte
 
 .continue_write
     ora masks, x

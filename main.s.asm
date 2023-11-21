@@ -10,7 +10,7 @@ IF SHOW_UI
 ENDIF
 
 ORG     BASE
-GUARD   SCREEN
+;GUARD   SCREEN
 
 .start
 
