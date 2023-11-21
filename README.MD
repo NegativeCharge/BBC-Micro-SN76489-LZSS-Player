@@ -6,14 +6,14 @@ This is based on the Atari SAP LZSS Player/Compressor by DMSC : https://github.c
 
 There are two players in the lib folder.  The first supports 9 streams and expects the input into the compressor to be in the format:
 
-[Tone 0 Latch/Data][Tone 0 Data] [Tone 1 Latch/Data][Tone 1 Data] [Tone 2 Latch/Data][Tone 2 Data][Noise Latch/Data][Vol 0|Vol 1][Vol 2|Vol 3]
+`[Tone 0 Latch/Data][Tone 0 Data][Tone 1 Latch/Data][Tone 1 Data][Tone 2 Latch/Data][Tone 2 Data][Noise Latch/Data][Vol 0|Vol 1][Vol 2|Vol 3]`
 
 ..using the format for Latch/Data bytes described here: https://www.smspower.org/Development/SN76489 
 However, the attenuation / volume is compressed into two bytes of two nybbles containing a value between 0 and 15
 
 The second player uses 7 compressed streams in the format:
 
-[Vol 0|Tone 0 (bottom 4 bits)][Tone 0 (top 6 bits)][Vol 1|Tone 1 (bottom 4 bits)][Tone 1 (top 6 bits)][Vol 2|Tone 2 (bottom 4 bits)][Tone 2 (top 6 bits)][Vol 3|Noise (bottom 4 bits)]
+`[Vol 0|Tone 0 (bottom 4 bits)][Tone 0 (top 6 bits)][Vol 1|Tone 1 (bottom 4 bits)][Tone 1 (top 6 bits)][Vol 2|Tone 2 (bottom 4 bits)][Tone 2 (top 6 bits)][Vol 3|Noise (bottom 4 bits)]`
 
 #Lempel–Ziv–Storer–Szymanski
 
