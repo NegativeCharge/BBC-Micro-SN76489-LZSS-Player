@@ -30,6 +30,7 @@ IF SHOW_UI
     ldx #MODE
     jsr set_mode
     jsr disable_cursor
+    jsr load_screen
 ENDIF
 
     lda #<TRACK_SPEED
@@ -73,3 +74,6 @@ PRINT "------------------------------"
 
 PUTBASIC "loader.bas","LOADER"
 PUTFILE  "BOOT","!BOOT",&FFFF
+IF SHOW_UI
+    PUTFILE  "ui\player.bin", "UI", &7C00
+ENDIF
