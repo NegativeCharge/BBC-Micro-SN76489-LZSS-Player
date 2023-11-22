@@ -39,7 +39,7 @@
     jmp OSFILE
 }
 
-IF SHOW_UI
+.file_params		SKIP 18
+
 .screen_filename
     equs "UI", 13
-ENDIF
