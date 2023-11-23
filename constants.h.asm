@@ -41,6 +41,6 @@ DEBUG                   = FALSE
 DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
 
-FILENAME                = ".\tracks\test08.lz16-7c"
+FILENAME                = ".\tracks\test00.lz16-7c"
 LZSS_PLAYER_H           = ".\lib\lzss-7c.h.asm"
 LZSS_PLAYER_S           = ".\lib\lzss-7c.s.asm"

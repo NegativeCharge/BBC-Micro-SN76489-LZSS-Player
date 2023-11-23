@@ -10,7 +10,7 @@ IF SHOW_UI
 ENDIF
 
 ORG     BASE
-;GUARD   SCREEN
+GUARD   SCREEN
 
 .start
 
@@ -31,6 +31,11 @@ IF SHOW_UI
     jsr set_mode
     jsr disable_cursor
     jsr load_screen
+
+    lda #0
+    sta clock_ticks
+    sta clock_mins
+    sta clock_secs
 ENDIF
 
     lda #<TRACK_SPEED
@@ -45,6 +50,13 @@ ENDIF
     cli                         ; Enable interrupts
 
     jmp *
+
+.processVsync
+    IF SHOW_UI
+    jmp updateTicks
+    ELSE
+    rts
+    ENDIF
 
 align $100
 .song_data

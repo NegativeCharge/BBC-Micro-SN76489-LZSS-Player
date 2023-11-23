@@ -87,6 +87,15 @@ align $100
     bit SHEILA_SYS_VIA_R13_IFR
     bne processSysViaT1
 
+    lda #%00000010             ; V-Sync
+    bit SHEILA_SYS_VIA_R13_IFR
+    bne vsyncHandler
+
+    jmp wait_frame
+
+.vsyncHandler
+    sta SHEILA_SYS_VIA_R13_IFR
+    jsr processVsync
     jmp wait_frame
 
 .processSysViaT1
