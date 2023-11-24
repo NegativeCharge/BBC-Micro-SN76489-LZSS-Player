@@ -51,6 +51,42 @@ ENDIF
 
     jmp *
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Wait for next frame
+;
+.wait_frame
+    lda #%01000000              ; Timer 1 mask bit
+    bit SHEILA_SYS_VIA_R13_IFR
+    bne processSysViaT1
+
+    lda #%00000010              ; V-Sync
+    bit SHEILA_SYS_VIA_R13_IFR
+    bne vsyncHandler
+
+    jmp wait_frame
+
+.vsyncHandler
+    sta SHEILA_SYS_VIA_R13_IFR
+    jsr processVsync
+    jmp wait_frame
+
+.processSysViaT1
+    sta SHEILA_SYS_VIA_R13_IFR
+    jsr play_frame
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Check for ending of song and jump to the next frame
+;
+.check_end_song
+    lda song_ptr + 1
+    cmp #>song_end
+    bne wait_frame
+    lda song_ptr + 0
+    cmp #<song_end
+    bne wait_frame
+
+    jmp reset
+
 .processVsync
     IF SHOW_UI
     jmp updateTicks

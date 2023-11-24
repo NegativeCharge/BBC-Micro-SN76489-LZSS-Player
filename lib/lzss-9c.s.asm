@@ -72,19 +72,8 @@ align $100
     sty cur_pos
 
     jsr output
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Wait for next frame
-;
-.wait_frame
-    lda #%01000000             ; Timer 1 mask bit
-    bit SHEILA_SYS_VIA_R13_IFR
-    bne processSysViaT1
-
+    
     jmp wait_frame
-
-.processSysViaT1
-    sta SHEILA_SYS_VIA_R13_IFR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Play one frame of the song
@@ -149,22 +138,11 @@ ENDIF
 
     inc cur_pos
 
-    jsr output
-
 IF DEBUG_RASTER
-    jsr raster_off
+    jmp raster_off
+ELSE
+    jmp output
 ENDIF
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Check for ending of song and jump to the next frame
-;
-.check_end_song
-    lda song_ptr + 1
-    cmp #>song_end
-    bne wait_frame
-    lda song_ptr + 0
-    cmp #<song_end
-    bne wait_frame
 
 .reset
     lda #%01000000
