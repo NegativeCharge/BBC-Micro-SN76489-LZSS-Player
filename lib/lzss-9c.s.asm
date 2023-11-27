@@ -41,6 +41,11 @@ align $100
 
 .play
 
+    lda #<TRACK_SPEED
+    sta SHEILA_SYS_VIA_R4_T1C_L
+    lda #>TRACK_SPEED
+    sta SHEILA_SYS_VIA_R5_T1C_H
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Song Initialization - this runs in the first tick:
 ;

@@ -33,7 +33,7 @@
 .bit_data    EQUB   1
 
 .get_byte {
-    lda song_data+1
+    lda song_data
     inc song_ptr
     bne skip
     inc song_ptr+1
@@ -47,27 +47,91 @@ align $100
 
 .play
 
-    lda #<TRACK_SPEED
-    sta SHEILA_SYS_VIA_R4_T1C_L
-    lda #>TRACK_SPEED
-    sta SHEILA_SYS_VIA_R5_T1C_H
+    ; Example: here initializes song pointer:
+    ; sta song_ptr
+    ; stx song_ptr + 1
 
+    ; Read Header
+
+    \\ Read song speed in hz - 16-bit
+    jsr get_byte
+    sta track_speed+0
+
+    jsr get_byte
+    sta track_speed+1
+
+    \\ Read IRQ rate - 16-bit
+    jsr get_byte
+    sta irq_rate+0
+
+    jsr get_byte
+    sta irq_rate+1
+
+    \\ Read song length - seconds (8-bit), minutes (8-bit)
+    jsr get_byte
+    sta track_length+0
+
+    jsr get_byte
+    sta track_length+1
+
+    \\ Read track title
+    ldx #0
+
+.title_loop
+    jsr get_byte
+    cmp #0
+    beq process_artist
+    sta track_title,x
+	inx
+    jmp title_loop
+
+    \\ Read track artist
+.process_artist
+    ldx #0
+
+.artist_loop
+    jsr get_byte
+    cmp #0
+    beq process_year
+    sta track_artist,x
+	inx
+    jmp artist_loop
+
+\\ Read track year
+.process_year
+    ldx #0
+
+.year_loop
+    jsr get_byte
+    cmp #0
+    beq init_song
+    sta track_year,x
+	inx
+    jmp year_loop
+    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Song Initialization - this runs in the first tick:
 ;
 .init_song
 
-    ; Example: here initializes song pointer:
-    ; sta song_ptr
-    ; stx song_ptr + 1
+IF SHOW_UI AND DISPLAY_METADATA
+    jsr print_track_metadata
+ENDIF
+
+    lda irq_rate+0
+    sta SHEILA_SYS_VIA_R4_T1C_L
+    lda irq_rate+1
+    sta SHEILA_SYS_VIA_R5_T1C_H
 
     ; Init all channels:
     ldx #6
     ldy #0
     sty last_noise_byte
     sty last_atten_byte
-    
+    jsr get_byte
+
 .clear
+
     ; Read just init value and store into buffer and SN76489
     jsr get_byte
     sta registers, x
@@ -297,3 +361,10 @@ ENDIF
 
     rts
 }
+
+.track_title        SKIP 30
+.track_artist       SKIP 30
+.track_year         SKIP 30
+.track_speed        SKIP 2
+.track_length       SKIP 2
+.irq_rate           SKIP 2

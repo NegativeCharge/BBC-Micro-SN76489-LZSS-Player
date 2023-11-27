@@ -38,11 +38,6 @@ IF SHOW_UI
     sta clock_secs
 ENDIF
 
-    lda #<TRACK_SPEED
-    sta SHEILA_SYS_VIA_R4_T1C_L
-    lda #>TRACK_SPEED
-    sta SHEILA_SYS_VIA_R5_T1C_H
-
     jsr sn_chip_reset
 
     sei                         ; Disable interrupts
@@ -123,5 +118,5 @@ PRINT "------------------------------"
 PUTBASIC "loader.bas","LOADER"
 PUTFILE  "BOOT","!BOOT",&FFFF
 IF SHOW_UI
-    PUTFILE  "ui\player.bin", "UI", &7C00
+    PUTFILE  PLAYER_BKGND, "UI", &7C00
 ENDIF

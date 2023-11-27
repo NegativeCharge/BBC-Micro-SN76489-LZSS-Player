@@ -36,11 +36,15 @@ MODE                    = 7
 BASE                    = $1100
 SCREEN                  = $7c00
 
+\\ Not needed for 7ch format - included in header
 TRACK_SPEED             = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
+
 DEBUG                   = FALSE
 DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
+DISPLAY_METADATA        = TRUE
 
-FILENAME                = ".\tracks\test00.lz16-7c"
-LZSS_PLAYER_H           = ".\lib\lzss-7c.h.asm"
-LZSS_PLAYER_S           = ".\lib\lzss-7c.s.asm"
+PLAYER_BKGND            = ".\ui\player2.bin"
+FILENAME                = ".\tracks\7ch\test01.lzc"
+LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
+LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
