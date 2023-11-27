@@ -20,6 +20,7 @@
 ; The plater needs 256 bytes of buffer for each SN76489 register stored, for a
 ; full SN 7-stream compressed register file this is 1,792 bytes.
 ;
+; BBC Micro / BeebAsm by Negative Charge, November 2023
 
 .chn_copy           SKIP     7
 .chn_pos            SKIP     7

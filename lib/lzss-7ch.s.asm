@@ -20,6 +20,7 @@
 ; The plater needs 256 bytes of buffer for each SN76489 register stored, for a
 ; full SN raw register file this is 2816 bytes.
 ;
+; BBC Micro / BeebAsm by Negative Charge, November 2023
 
 .registers
     EQUB 0,0,0,0,0,0,0
