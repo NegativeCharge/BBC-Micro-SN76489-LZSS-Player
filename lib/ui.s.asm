@@ -196,6 +196,7 @@
     jsr printString
     EQUS "Hz", 0
 
+    ldy #0
     lda #LO(track_length_min_addr)
 	sta writeptr+0
 	lda #HI(track_length_min_addr)
@@ -207,6 +208,7 @@
     LDA bcd+0
     JSR printDec
 
+    ldy #0
     lda #LO(track_length_sec_addr)
 	sta writeptr+0
 	lda #HI(track_length_sec_addr)
