@@ -1,5 +1,7 @@
 .updateRowData
 {
+    ldy #0
+    
     lda #LO(row_counter_addr)
 	sta writeptr+0
 	lda #HI(row_counter_addr)
