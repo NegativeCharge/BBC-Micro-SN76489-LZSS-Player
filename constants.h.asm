@@ -45,6 +45,6 @@ SHOW_UI                 = TRUE
 DISPLAY_METADATA        = TRUE
 
 PLAYER_BKGND            = ".\ui\player3.bin"
-FILENAME                = ".\tracks\7ch\test02.lzc"
+FILENAME                = ".\tracks\7ch\test14.lzc"
 LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
 LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"

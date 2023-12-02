@@ -9,7 +9,7 @@ ELSE
 clock_addr = MODE7_base_addr + 1 * MODE7_char_width + 34
 ENDIF
 
-row_counter_addr = MODE7_base_addr + 20 * MODE7_char_width + 3
+row_counter_addr = MODE7_base_addr + 21 * MODE7_char_width + 3
 
 track_title_addr = MODE7_base_addr + 5 * MODE7_char_width + 10
 track_artist_addr = MODE7_base_addr + 6 * MODE7_char_width + 10
