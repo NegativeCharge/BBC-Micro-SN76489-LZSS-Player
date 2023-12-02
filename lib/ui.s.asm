@@ -1,3 +1,140 @@
+.updateRowData
+{
+    lda #LO(row_counter_addr)
+	sta writeptr+0
+	lda #HI(row_counter_addr)
+	sta writeptr+1
+
+    tya:pha
+
+    lda row_counter+0
+    sta num+0
+    lda row_counter+1
+    sta num+1
+
+    jsr PrDec16
+    pla:tay
+
+    iny:iny:iny:iny:iny:iny:iny
+
+    lda decoded_registers+2
+    cmp #$0f
+    beq tone0_muted
+
+    lda decoded_registers+1     ; Upper 6 bytes - 00111111
+    pha
+    lsr a:lsr a:lsr a:lsr a
+    jsr write_hex_nybble
+    pla
+    asl a:asl a:asl a:asl a
+    ora decoded_registers+0     ; Low 4 bytes   - 00001111
+
+    iny           
+    jsr write_hex_byte
+
+    iny:iny
+    lda decoded_registers+2
+    jsr write_hex_byte
+    iny:iny
+    jmp tone1
+
+.tone0_muted
+    jsr printString
+    equs "--- --",0
+    iny
+
+.tone1
+    lda decoded_registers+5
+    cmp #$0f
+    beq tone1_muted
+
+    lda decoded_registers+4     ; Upper 6 bytes - 00111111
+    pha
+    lsr a:lsr a:lsr a:lsr a
+    jsr write_hex_nybble
+    pla
+    asl a:asl a:asl a:asl a
+    ora decoded_registers+3     ; Low 4 bytes   - 00001111
+
+    iny           
+    jsr write_hex_byte
+
+    iny:iny
+    lda decoded_registers+5
+    jsr write_hex_byte
+    iny:iny
+    jmp tone2
+
+.tone1_muted
+    jsr printString
+    equs "--- --",0
+    iny
+
+.tone2
+    lda decoded_registers+8
+    cmp #$0f
+    beq tone2_muted
+
+    lda decoded_registers+7     ; Upper 6 bytes - 00111111
+    pha
+    lsr a:lsr a:lsr a:lsr a
+    jsr write_hex_nybble
+    pla
+    asl a:asl a:asl a:asl a
+    ora decoded_registers+6     ; Low 4 bytes   - 00001111
+
+    iny           
+    jsr write_hex_byte
+
+    iny:iny
+    lda decoded_registers+8
+    jsr write_hex_byte
+
+    iny:iny
+    jmp tone3
+
+.tone2_muted
+    jsr printString
+    equs "--- --",0
+    iny
+
+.tone3
+    lda decoded_registers+10
+    cmp #$0f
+    beq tone3_muted
+
+    lda decoded_registers+9
+    and #%00000100
+    beq noise_periodic
+
+    lda #'W'					; White Noise
+    equb &2C					; = BIT noise_periodic => skip next two bytes
+
+.noise_periodic
+    lda #'P'					; Periodic Noise
+    sta (writeptr),y
+    iny
+
+    lda registers+9
+    and #%00000011
+    asl a					
+    tax
+    lda noise_note_0,X
+    sta (writeptr),y
+    iny
+    lda noise_note_0+1,X
+    sta (writeptr),y
+    iny:iny
+
+    lda decoded_registers+10
+    jmp write_hex_byte
+
+.tone3_muted
+    jsr printString
+    equs "--- --",0
+    rts
+}
+
 .updateTicks
 {
     inc clock_ticks
@@ -122,6 +259,19 @@
     rts
 }
 
+.incrementRowCounter
+{  
+    lda row_counter+0
+    clc
+    adc #1
+    sta row_counter+0
+    lda row_counter+1
+    adc #0
+    sta row_counter+1
+
+    rts
+}
+
 .load_screen
 {
 	lda #LO(screen_filename)
@@ -185,6 +335,7 @@
     lda track_speed+1
     sta num+1
 
+    ldy #0
     lda #LO(track_speed_addr)
 	sta writeptr+0
 	lda #HI(track_speed_addr)
@@ -238,31 +389,47 @@
 
 .printString
 {
-    PLA
-    STA str+1
-    PLA
-    STA str+2
+    pla
+    sta str+1
+    pla
+    sta str+2
 
 .strOut
-    INC str+1
-    BNE str
-    INC str+2
+    inc str+1
+    bne str
+    inc str+2
 
 .str
-    LDA &FFFF           ; Self-Modified
-    BEQ strEnd
+    lda &ffff           ; Self-Modified
+    beq strEnd
     sta (writeptr),y
     iny
-    JMP strOut
+    jmp strOut
 
 .strEnd
-    LDA str+2
-    PHA
-    LDA str+1
-    PHA
+    lda str+2
+    pha
+    lda str+1
+    pha
 
-    RTS
+    rts
 }
+
+.write_hex_byte
+    pha                        :\ Save A
+    lsr A:lsr A:lsr A:lsr A    :\ Move top nybble to bottom nybble
+    jsr write_hex_nybble
+    pla
+    iny
+    and #$0f                    :\ Mask out original bottom nybble
+.write_hex_nybble
+    sed
+    clc
+    adc #$90                   :\ Produce &90-&99 or &00-&05
+    adc #$40                   :\ Produce &30-&39 or &41-&46
+    cld
+    sta (writeptr),y           :\ Print it
+    rts
 
 \ ---------------------------
 \ Print 16-bit decimal number
@@ -275,7 +442,6 @@
 \ Size      69 bytes
 \ -----------------------------------------------------------------
 .PrDec16
-   ldy #0
    sty temp_y
    ldy #8                                   \ Offset to powers of ten
 .PrDec16Lp1
@@ -380,3 +546,8 @@
 
 .screen_filename
     equs "UI", 13
+
+.noise_note_0 EQUS "Lo"
+.noise_note_1 EQUS "Md"
+.noise_note_2 EQUS "Hi"
+.noise_note_3 EQUS "T2"

@@ -36,6 +36,9 @@ IF SHOW_UI
     sta clock_ticks
     sta clock_mins
     sta clock_secs
+    
+    sta row_counter+0
+    sta row_counter+1
 ENDIF
 
     jsr sn_chip_reset
@@ -68,6 +71,9 @@ ENDIF
 .processSysViaT1
     sta SHEILA_SYS_VIA_R13_IFR
     jsr play_frame
+IF SHOW_UI
+    jsr incrementRowCounter
+ENDIF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Check for ending of song and jump to the next frame
@@ -84,6 +90,7 @@ ENDIF
 
 .processVsync
     IF SHOW_UI
+    jsr updateRowData
     jmp updateTicks
     ELSE
     rts
