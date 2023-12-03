@@ -9,6 +9,10 @@ IF SHOW_UI
     INCLUDE ".\lib\ui.h.asm"
 ENDIF
 
+IF SHOW_FX
+    INCLUDE ".\lib\fx.h.asm"
+ENDIF
+
 ORG     BASE
 GUARD   SCREEN
 
@@ -22,6 +26,10 @@ IF SHOW_UI
     INCLUDE ".\lib\ui.s.asm"
 ENDIF
 
+IF SHOW_FX
+    INCLUDE ".\lib\fx.s.asm"
+ENDIF
+
 INCLUDE LZSS_PLAYER_S
 
 .init
@@ -31,6 +39,10 @@ IF SHOW_UI
     jsr set_mode
     jsr disable_cursor
     jsr load_screen
+
+IF SHOW_FX
+    jsr init_fx
+ENDIF
 
     lda #0
     sta clock_ticks
@@ -89,12 +101,16 @@ ENDIF
     jmp reset
 
 .processVsync
-    IF SHOW_UI
+IF SHOW_UI
+IF SHOW_FX
+    jsr update_fx_array
+    jsr poll_fx
+ENDIF
     jsr updateRowData
     jmp updateTicks
-    ELSE
+ELSE
     rts
-    ENDIF
+ENDIF
 
 align $100
 .song_data
