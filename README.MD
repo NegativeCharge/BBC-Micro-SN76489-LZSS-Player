@@ -4,6 +4,8 @@ This app plays back an LZSS compressed stream of sequential SN76489 register wri
 
 This is based on the Atari SAP LZSS Player/Compressor by DMSC : https://github.com/dmsc/lzss-sap
 
+![image](./screenshot.gif)
+
 There are three players in the lib folder.  The first supports 9 streams and expects the input into the compressor to be in the format:
 
 `[Tone 0 Latch/Data][Tone 0 Data][Tone 1 Latch/Data][Tone 1 Data][Tone 2 Latch/Data][Tone 2 Data][Noise Latch/Data][Vol 0|Vol 1][Vol 2|Vol 3]`
