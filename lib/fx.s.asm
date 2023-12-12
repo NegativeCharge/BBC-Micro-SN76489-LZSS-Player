@@ -32,17 +32,17 @@
 	
 	.fx_column_loop
 	
-	\\ get frequency level
+	\\ Get frequency level
 	txa
 	tay
 	lda freq_array, Y
 	
 	clc
-	adc #1			; this hack forces levels to be a minimum of 1
+	adc #1			; This hack forces levels to be a minimum of 1
 					; which means there's always a blue bar showing
 					; fx_table lookup has a duplicated extra entry to prevent overread
 	
-	\\ mult*5 and lookup teletext bar graphic
+	\\ Mult*5 and lookup teletext bar graphic
 	sta tmp_fx_y
 	asl a
 	asl a
@@ -50,7 +50,7 @@
 	adc tmp_fx_y
 	tay
 	
-	\\ render the 5 byte bar column, 1 chr per bar
+	\\ Render the 5 byte bar column, 1 chr per bar
 	lda fx_table + 4, Y
 	and #$b5
 	sta FX_address_row0+0, X
@@ -97,6 +97,10 @@
 
 .loop
     lda decoded_registers,x         ; Data bytes for tone channel / latch/data byte for noise
+    cpx #9
+    bne skip_adjust
+    and #3                          ; Noise - lowest two bits hold low, medium or high, unless tuned
+.skip_adjust
     sta temp_a
     inx
     lda decoded_registers,X         ; Ensure channel isn't silent

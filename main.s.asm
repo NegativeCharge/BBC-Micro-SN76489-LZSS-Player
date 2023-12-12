@@ -17,6 +17,7 @@ ORG     BASE
 GUARD   SCREEN
 
 .start
+    INCLUDE ".\lib\irq.s.asm"
 
 IF DEBUG
     INCLUDE ".\debug.s.asm"
@@ -44,6 +45,7 @@ IF SHOW_FX
     jsr init_fx
 ENDIF
 
+.reinit
     lda #0
     sta clock_ticks
     sta clock_mins
@@ -51,6 +53,8 @@ ENDIF
     
     sta row_counter+0
     sta row_counter+1
+
+    sta pad
 ENDIF
 
     jsr sn_chip_reset
@@ -59,57 +63,22 @@ ENDIF
     jsr play
     cli                         ; Enable interrupts
 
-    jmp *
+IF LOOP
+    lda song_ptr_init+0
+    sta song_ptr+0
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Wait for next frame
-;
-.wait_frame
-    lda #%01000000              ; Timer 1 mask bit
-    bit SHEILA_SYS_VIA_R13_IFR
-    bne processSysViaT1
+    lda song_ptr_init+1
+    sta song_ptr+1
 
-    lda #%00000010              ; V-Sync
-    bit SHEILA_SYS_VIA_R13_IFR
-    bne vsyncHandler
+    lda cbuf_init+0
+    sta cbuf+1
 
-    jmp wait_frame
+    lda cbuf_init+1
+    sta cbuf+2
 
-.vsyncHandler
-    sta SHEILA_SYS_VIA_R13_IFR
-    jsr processVsync
-    jmp wait_frame
-
-.processSysViaT1
-    sta SHEILA_SYS_VIA_R13_IFR
-    jsr play_frame
-IF SHOW_UI
-    jsr incrementRowCounter
-ENDIF
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Check for ending of song and jump to the next frame
-;
-.check_end_song
-    lda song_ptr + 1
-    cmp #>song_end
-    bne wait_frame
-    lda song_ptr + 0
-    cmp #<song_end
-    bne wait_frame
-
-    jmp reset
-
-.processVsync
-IF SHOW_UI
-IF SHOW_FX
-    jsr update_fx_array
-    jsr poll_fx
-ENDIF
-    jsr updateRowData
-    jmp updateTicks
+    jmp reinit
 ELSE
-    rts
+    jmp *
 ENDIF
 
 align $100

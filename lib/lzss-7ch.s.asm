@@ -22,12 +22,6 @@
 ;
 ; BBC Micro / BeebAsm by Negative Charge, November 2023
 
-.registers
-    EQUB 0,0,0,0,0,0,0
-
-.decoded_registers   
-    EQUB 0,0,0,0,0,0,0,0,0,0,0
-
 .masks
     EQUB CH0TONELATCH, 0, CH0VOL, CH1TONELATCH, 0, CH1VOL, CH2TONELATCH, 0, CH2VOL, CH3TONELATCH, CH3VOL
 
@@ -43,10 +37,27 @@
 }
 song_ptr = get_byte + 1
 
+.cbuf_init
+    EQUW 0
+.song_ptr_init
+    EQUW 0
+
 align $100
 .buffers SKIP 256 * 7
 
 .play
+    lda song_ptr+0
+    sta song_ptr_init+0
+    lda song_ptr+1
+    sta song_ptr_init+1
+
+    lda cbuf+1
+    sta cbuf_init+0
+    lda cbuf+2
+    sta cbuf_init+1
+
+    lda #1
+    sta bit_data
 
     ; Example: here initializes song pointer:
     ; sta song_ptr
@@ -175,7 +186,7 @@ ENDIF
     bne got_bit
     jsr get_byte       ; Not enough bits, refill!
     ror a              ; Extract a new bit and add a 1 at the high bit (from C set above)
-    sta bit_data       ;
+    sta bit_data       
 .got_bit
     jsr get_byte       ; Always read a byte, it could mean "match size/offset" or "literal byte"
     bcs store          ; Bit = 1 is "literal", bit = 0 is "match"
@@ -185,9 +196,9 @@ ENDIF
     jsr get_byte
     sta chn_copy, x    ; Store in "copy length"
 
-                        ; And start copying first byte
+                       ; And start copying first byte
 .do_copy_byte
-    dec chn_copy, x     ; Decrease match length, increase match position
+    dec chn_copy, x    ; Decrease match length, increase match position
     inc chn_pos, x
     ldy chn_pos, x
 
@@ -196,7 +207,7 @@ ENDIF
 
 .store
     ldy cur_pos
-    sta registers, x        ; Store to output and buffer
+    sta registers, x   ; Store to output and buffer
     sta (bptr), y
 
     ; Increment channel buffer pointer
@@ -218,7 +229,6 @@ ENDIF
     sta SHEILA_SYS_VIA_R13_IFR
 
 .sn_chip_reset
-{
     lda #%11111111
     sta SHEILA_SYS_VIA_R3_DDRA     ; data direction Register A
 
@@ -230,11 +240,9 @@ ENDIF
     lda #%11011111
     jsr sn_chip_write               ; Channel 2
     lda #%11111111
-    jmp sn_chip_write               ; Channel 3 (Noise)
-}
+                                    ; Channel 3 (Noise)
 
 .sn_chip_write
-{
     sta SHEILA_SYS_VIA_PORT_A                 ; place psg data on port a slow bus
     lda #%00000000
     sta SHEILA_SYS_VIA_PORT_B
@@ -245,7 +253,6 @@ ENDIF
     lda #%00001000
     sta SHEILA_SYS_VIA_PORT_B
     rts
-}
 
 .output {
 
