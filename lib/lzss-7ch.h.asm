@@ -35,6 +35,3 @@
 .temp_a             SKIP     1
 .temp_x             SKIP     1
 .temp_y             SKIP     1
-
-.registers          SKIP     7
-.decoded_registers  SKIP     11

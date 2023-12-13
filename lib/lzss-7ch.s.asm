@@ -22,6 +22,12 @@
 ;
 ; BBC Micro / BeebAsm by Negative Charge, November 2023
 
+.registers
+    EQUB 0,0,0,0,0,0,0
+
+.decoded_registers   
+    EQUB 0,0,0,0,0,0,0,0,0,0,0
+    
 .masks
     EQUB CH0TONELATCH, 0, CH0VOL, CH1TONELATCH, 0, CH1VOL, CH2TONELATCH, 0, CH2VOL, CH3TONELATCH, CH3VOL
 
