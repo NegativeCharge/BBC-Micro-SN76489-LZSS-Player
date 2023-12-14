@@ -31,10 +31,12 @@ IF SHOW_UI
     jsr incrementRowCounter
 ENDIF
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Check for ending of song and jump to the next frame
-;
-.check_end_song
+IF CHECK_EOF
+    lda eof_flag
+    beq wait_frame
+
+    jmp reset
+ELSE
     lda song_ptr + 1
     cmp #>song_end
     bne wait_frame
@@ -42,4 +44,5 @@ ENDIF
     cmp #<song_end
     bne wait_frame
 
-    jmp reset
+    jmp reset    
+ENDIF

@@ -27,7 +27,7 @@
 
 .decoded_registers   
     EQUB 0,0,0,0,0,0,0,0,0,0,0
-    
+
 .masks
     EQUB CH0TONELATCH, 0, CH0VOL, CH1TONELATCH, 0, CH1VOL, CH2TONELATCH, 0, CH2VOL, CH3TONELATCH, CH3VOL
 
@@ -94,6 +94,7 @@ align $100
 
     \\ Read track title
     ldx #0
+    stx eof_flag
 
 .title_loop
     jsr get_byte
@@ -264,6 +265,12 @@ ENDIF
 
     jsr decode_regs
 
+    ; Check register 9 (CH3 Noise) for eof marker
+    ldx #9
+    lda decoded_registers,x
+    cmp #$08
+    beq eof
+
     ldy #11
     ldx #0
 
@@ -294,6 +301,11 @@ ENDIF
     dey
     bne reg_loop
 
+    rts
+
+.eof
+    lda #1
+    sta eof_flag
     rts
 }
 
@@ -382,3 +394,8 @@ ENDIF
 .track_speed        SKIP 2
 .track_length       SKIP 2
 .irq_rate           SKIP 2
+
+IF CHECK_EOF
+.eof_flag
+    EQUB 0
+ENDIF

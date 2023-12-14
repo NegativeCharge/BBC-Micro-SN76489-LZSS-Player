@@ -44,9 +44,16 @@ DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
 SHOW_FX                 = TRUE
 DISPLAY_METADATA        = TRUE
+USE_SWRAM               = TRUE
+CHECK_EOF               = TRUE
 
-PLAYER_BKGND            = ".\ui\player4.bin"
-FILENAME                = ".\tracks\7ch\test16.lzc"
+IF USE_SWRAM
+    PLAYER_BKGND        = ".\ui\player5.bin"
+ELSE
+    PLAYER_BKGND        = ".\ui\player4.bin"
+ENDIF
+
+FILENAME                = ".\tracks\7ch\test20.lzc"
 LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
 LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
 

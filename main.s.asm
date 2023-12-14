@@ -13,6 +13,10 @@ IF SHOW_FX
     INCLUDE ".\lib\fx.h.asm"
 ENDIF
 
+IF USE_SWRAM
+    INCLUDE ".\lib\swr.h.asm"
+ENDIF
+
 ORG     BASE
 GUARD   SCREEN
 
@@ -31,6 +35,10 @@ IF SHOW_FX
     INCLUDE ".\lib\fx.s.asm"
 ENDIF
 
+IF USE_SWRAM
+    INCLUDE ".\lib\swr.s.asm"
+ENDIF
+
 INCLUDE LZSS_PLAYER_S
 
 .init
@@ -40,6 +48,30 @@ IF SHOW_UI
     jsr set_mode
     jsr disable_cursor
     jsr load_screen
+
+IF USE_SWRAM
+    jsr swr_init
+    beq no_swram
+
+IF SHOW_UI
+    ldx #0
+.swr_ui_update_loop
+    lda swr_ram_banks,x
+
+    ; Update UI
+    txa
+    asl a
+    tay
+    lda #ttxt_gfx_green
+    sta swr_bank_0,y
+
+    inx
+    cpx swr_ram_banks_count
+    bne swr_ui_update_loop
+ENDIF
+
+.no_swram
+ENDIF
 
 IF SHOW_FX
     jsr init_fx
