@@ -21,6 +21,7 @@ ORG     BASE
 GUARD   SCREEN
 
 .start
+    INCLUDE ".\lib\io.s.asm"
     INCLUDE ".\lib\irq.s.asm"
 
 IF DEBUG
@@ -47,7 +48,11 @@ IF SHOW_UI
     ldx #MODE
     jsr set_mode
     jsr disable_cursor
-    jsr load_screen
+
+    lda #>MODE7_base_addr
+    ldx #<screen_filename
+    ldy #>screen_filename
+    jsr disksys_load_direct
 
 IF USE_SWRAM
     jsr swr_init
@@ -113,10 +118,14 @@ ELSE
     jmp *
 ENDIF
 
+IF EMBED_TRACK_INLINE
 align $100
 .song_data
     INCBIN FILENAME
+IF CHECK_EOF = FALSE
 .song_end
+ENDIF
+ENDIF
 
 .end
 
@@ -130,7 +139,9 @@ PRINT "------------------------------"
 PRINT "          LZSS Player         "
 PRINT "------------------------------"
 PRINT "TRACK START            = ", ~song_data
+IF CHECK_EOF = FALSE
 PRINT "TRACK END              = ", ~song_end
+ENDIF
 PRINT "HIGH WATERMARK         = ", ~P%
 PRINT "FREE                   = ", ~start+end
 PRINT "------------------------------"

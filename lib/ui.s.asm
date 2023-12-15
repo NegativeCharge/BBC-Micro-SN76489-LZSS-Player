@@ -274,27 +274,6 @@
     rts
 }
 
-.load_screen
-{
-	lda #LO(screen_filename)
-	sta file_params + 0
-	lda #HI(screen_filename)
-	sta file_params + 1
-
-    lda #LO(MODE7_base_addr)
-    sta file_params + 2
-    lda #HI(MODE7_base_addr)
-    sta file_params + 3
-
-    lda #0
-    sta file_params + 6
-
-    ldx #LO(file_params)
-    ldy #HI(file_params)
-    lda #&FF
-    jmp OSFILE
-}
-
 .print_track_metadata {
     ldx #LO(track_title)
     stx readptr+0
@@ -543,8 +522,6 @@
     EQUW 0
 .pad
     EQUB 0
-
-.file_params		SKIP 18
 
 .screen_filename
     equs "UI", 13

@@ -45,7 +45,8 @@ SHOW_UI                 = TRUE
 SHOW_FX                 = TRUE
 DISPLAY_METADATA        = TRUE
 USE_SWRAM               = TRUE
-CHECK_EOF               = TRUE
+CHECK_EOF               = FALSE
+EMBED_TRACK_INLINE      = TRUE
 
 IF USE_SWRAM
     PLAYER_BKGND        = ".\ui\player5.bin"
@@ -58,3 +59,5 @@ LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
 LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
 
 LOOP                    = TRUE
+
+DISKSYS_LOADTO_ADDR     = $3000

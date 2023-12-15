@@ -94,7 +94,9 @@ align $100
 
     \\ Read track title
     ldx #0
+IF CHECK_EOF
     stx eof_flag
+ENDIF
 
 .title_loop
     jsr get_byte
@@ -265,11 +267,13 @@ ENDIF
 
     jsr decode_regs
 
+IF CHECK_EOF
     ; Check register 9 (CH3 Noise) for eof marker
     ldx #9
     lda decoded_registers,x
     cmp #$08
     beq eof
+ENDIF
 
     ldy #11
     ldx #0
@@ -303,10 +307,12 @@ ENDIF
 
     rts
 
+IF CHECK_EOF
 .eof
     lda #1
     sta eof_flag
     rts
+ENDIF
 }
 
 .decode_regs
