@@ -54,6 +54,13 @@ IF SHOW_UI
     ldy #>screen_filename
     jsr disksys_load_direct
 
+IF EMBED_TRACK_INLINE = FALSE
+    lda #>song_data
+    ldx #<track_filenames
+    ldy #>track_filenames
+    jsr disksys_load_direct
+ENDIF
+
 IF USE_SWRAM
     jsr swr_init
     beq no_swram
@@ -118,13 +125,19 @@ ELSE
     jmp *
 ENDIF
 
-IF EMBED_TRACK_INLINE
+IF EMBED_TRACK_INLINE = FALSE
+    .track_filenames
+        EQUS ":0.$.00", 13
+ENDIF
+
 align $100
 .song_data
+
+IF EMBED_TRACK_INLINE
     INCBIN FILENAME
-IF CHECK_EOF = FALSE
-.song_end
-ENDIF
+    IF CHECK_EOF = FALSE
+        .song_end
+    ENDIF
 ENDIF
 
 .end
@@ -153,5 +166,9 @@ PRINT "------------------------------"
 PUTBASIC "loader.bas","LOADER"
 PUTFILE  "BOOT","!BOOT",&FFFF
 IF SHOW_UI
-    PUTFILE  PLAYER_BKGND, "UI", &7C00
+    PUTFILE PLAYER_BKGND, "UI", &7C00
+ENDIF
+
+IF EMBED_TRACK_INLINE = FALSE
+    PUTFILE TRACK_FILENAME, "$.00", song_data
 ENDIF

@@ -44,9 +44,9 @@ DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
 SHOW_FX                 = TRUE
 DISPLAY_METADATA        = TRUE
-USE_SWRAM               = FALSE
-CHECK_EOF               = FALSE
-EMBED_TRACK_INLINE      = TRUE
+USE_SWRAM               = TRUE
+CHECK_EOF               = TRUE
+EMBED_TRACK_INLINE      = FALSE
 
 IF USE_SWRAM
     PLAYER_BKGND        = ".\ui\player5.bin"
@@ -54,10 +54,16 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-FILENAME                = ".\tracks\7ch\test20.lzc"
-LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
-LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
+TRACK_FILENAME                = ".\tracks\7ch\test20.lzc"
+
+IF USE_SWRAM
+    LZSS_PLAYER_H           = ".\lib\lzss-7chs.h.asm"
+    LZSS_PLAYER_S           = ".\lib\lzss-7chs.s.asm"
+ELSE
+    LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
+    LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
+ENDIF
 
 LOOP                    = TRUE
 
-DISKSYS_LOADTO_ADDR     = $3000
+DISKSYS_LOADTO_ADDR     = $2200
