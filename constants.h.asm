@@ -44,7 +44,7 @@ DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
 SHOW_FX                 = TRUE
 DISPLAY_METADATA        = TRUE
-USE_SWRAM               = TRUE
+USE_SWRAM               = FALSE
 CHECK_EOF               = FALSE
 EMBED_TRACK_INLINE      = TRUE
 
