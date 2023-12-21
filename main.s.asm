@@ -54,13 +54,6 @@ IF SHOW_UI
     ldy #>screen_filename
     jsr disksys_load_direct
 
-IF EMBED_TRACK_INLINE = FALSE
-    lda #>song_data
-    ldx #<track_filenames
-    ldy #>track_filenames
-    jsr disksys_load_direct
-ENDIF
-
 IF USE_SWRAM
     jsr swr_init
     beq no_swram
@@ -74,7 +67,7 @@ IF SHOW_UI
     txa
     asl a
     tay
-    lda #ttxt_gfx_green
+    lda #ttxt_gfx_blue
     sta swr_bank_0,y
 
     inx
@@ -83,6 +76,17 @@ IF SHOW_UI
 ENDIF
 
 .no_swram
+ENDIF
+
+IF EMBED_TRACK_INLINE = FALSE
+    lda #>song_data
+    ldx #<track_filenames
+    ldy #>track_filenames
+    jsr disksys_load_direct
+
+    IF USE_SWRAM
+        jsr load_swram_banks
+    ENDIF
 ENDIF
 
 IF SHOW_FX
@@ -127,14 +131,16 @@ ENDIF
 
 IF EMBED_TRACK_INLINE = FALSE
     .track_filenames
-        EQUS ":0.$.00", 13
+        FOR n, 0, TRACK_PARTS - 1
+            equs TRACK_DST_DRIVE_PREFIX + TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), 13
+        NEXT
 ENDIF
 
 align $100
 .song_data
 
 IF EMBED_TRACK_INLINE
-    INCBIN FILENAME
+    INCBIN TRACK_SRC_FILENAME_PREFIX + TRACK_SRC_FILENAME_SUFFIX
     IF CHECK_EOF = FALSE
         .song_end
     ENDIF
@@ -169,6 +175,12 @@ IF SHOW_UI
     PUTFILE PLAYER_BKGND, "UI", &7C00
 ENDIF
 
-IF EMBED_TRACK_INLINE = FALSE
-    PUTFILE TRACK_FILENAME, "$.00", song_data
+IF EMBED_TRACK_INLINE = FALSE AND USE_SWRAM = FALSE
+    PUTFILE TRACK_SRC_FILENAME_PREFIX + TRACK_SRC_FILENAME_SUFFIX, TRACK_DST_FILENAME_PREFIX + "00", song_data
+ENDIF
+
+IF EMBED_TRACK_INLINE = FALSE AND USE_SWRAM
+    FOR n, 0, TRACK_PARTS - 1
+        PUTFILE TRACK_SRC_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), song_data
+    NEXT
 ENDIF

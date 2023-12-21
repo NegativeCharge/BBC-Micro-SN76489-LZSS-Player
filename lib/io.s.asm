@@ -96,3 +96,61 @@
 
 .disksys_copy_block_return
     rts
+
+IF USE_SWRAM
+.load_swram_banks
+{
+    ldx #TRACK_PARTS - 1
+    stx active_swram_banks
+    cpx swr_ram_banks_count
+    bcc populate_banks
+
+    ldx swr_ram_banks_count
+    stx active_swram_banks      ; reduce active banks to number available
+    beq exit
+
+.populate_banks
+    ldx #0
+    ldy #1
+
+.bank_loop
+    stx temp_x
+    sty temp_y
+IF SHOW_UI
+    ; Update UI
+    txa
+    asl a
+    tay
+    lda #ttxt_gfx_green
+    sta swr_bank_0,y
+    ldy temp_y
+ENDIF
+    txa
+    jsr swr_select_slot
+
+    lda temp_y
+    asl a:asl a:asl a
+    clc
+	adc #LO(track_filenames)
+	tax
+	lda #HI(track_filenames)
+	adc #0
+    tay
+       
+    lda #$80
+    jsr disksys_load_file
+
+    ldy temp_y
+    ldx temp_x
+    iny
+    inx
+    cpx active_swram_banks
+    bne bank_loop
+
+    ; Set to first bank
+    lda #0
+    jmp swr_select_slot
+.exit
+    rts
+}
+ENDIF

@@ -14,7 +14,7 @@
     lda row_counter+1
     sta num+1
 
-    jsr PrDec16
+    jsr print_decimal_16bit
     pla:tay
 
     iny:iny:iny:iny:iny:iny:iny
@@ -322,7 +322,7 @@
 	lda #HI(track_speed_addr)
 	sta writeptr+1
 
-    jsr PrDec16
+    jsr print_decimal_16bit
 
     ldy temp_y
     jsr printString
@@ -338,7 +338,7 @@
     STA bin
     JSR convert_to_bcd
     LDA bcd+0
-    JSR printDec
+    JSR print_decimal
 
     ldy #0
     lda #LO(track_length_sec_addr)
@@ -350,7 +350,7 @@
     STA bin
     JSR convert_to_bcd
     LDA bcd+0
-    JSR printDec
+    JSR print_decimal
 
     rts
 }
@@ -417,87 +417,94 @@
 \ ---------------------------
 \ On entry, num=number to print
 \           pad=0 or pad character (eg '0' or ' ')
-\ On entry at PrDec16Lp1,
+\ On entry at print_decimal_16bit_lp1,
 \           Y=(number of digits)*2-2, eg 8 for 5 digits
 \ On exit,  A,X,Y,num,pad corrupted
 \ Size      69 bytes
 \ -----------------------------------------------------------------
-.PrDec16
+.print_decimal_16bit
    sty temp_y
    ldy #8                                   \ Offset to powers of ten
-.PrDec16Lp1
+
+.print_decimal_16bit_lp1
    ldx #$ff
    sec                                      \ Start with digit=-1
-.PrDec16Lp2
+
+.print_decimal_16bit_lp2
    lda num+0
-   sbc PrDec16Tens+0,y
+   sbc print_decimal_16bit_tens+0,y
    sta num+0                                \ Subtract current tens
    lda num+1
-   sbc PrDec16Tens+1,y
+   sbc print_decimal_16bit_tens+1,y
    sta num+1
    inx
-   bcs PrDec16Lp2                           \ Loop until <0
+   bcs print_decimal_16bit_lp2              \ Loop until <0
    lda num+0
-   adc PrDec16Tens+0,y
+   adc print_decimal_16bit_tens+0,y
    sta num+0                                \ Add current tens back in
    lda num+1
-   adc PrDec16Tens+1,y
+   adc print_decimal_16bit_tens+1,y
    sta num+1
    txa
-   bne PrDec16Digit                         \ Not zero, print it
+   bne print_decimal_16bit_digit                         \ Not zero, print it
    lda pad
-   bne PrDec16Print
-   beq PrDec16Next                          \ pad<>0, use it
-.PrDec16Digit
+   bne print_decimal_16bit_print
+   beq print_decimal_16bit_next                          \ pad<>0, use it
+
+.print_decimal_16bit_digit
    ldx #'0'
    stx pad                                  \ No more zero padding
    ora #'0'                                 \ Print this digit
-.PrDec16Print
+
+.print_decimal_16bit_print
    sta temp_a
-   tya:pha
+   tya
+   pha
    ldy temp_y
    lda temp_a
    sta (writeptr),y
    iny
    sty temp_y
-   pla:tay
-.PrDec16Next
+   pla
+   tay
+
+.print_decimal_16bit_next
    dey
    dey
-   bpl PrDec16Lp1                           \ Loop for next digit
+   bpl print_decimal_16bit_lp1                           \ Loop for next digit
    rts
 
-.PrDec16Tens
-   EQUW 1
-   EQUW 10
-   EQUW 100
-   EQUW 1000
-   EQUW 10000
+.print_decimal_16bit_tens
+   equw 1
+   equw 10
+   equw 100
+   equw 1000
+   equw 10000
 
 .convert_to_bcd
 {
-    SED		    ; Switch to decimal mode
-    LDA #0		; Ensure the result is clear
-    STA bcd+0
-    STA bcd+1
-    LDX #8		; The number of source bits
+    sed		    ; Switch to decimal mode
+    lda #0		; Ensure the result is clear
+    sta bcd+0
+    sta bcd+1
+    ldx #8		; The number of source bits
 
-.cnvbit		
-    ASL bin		; Shift out one bit
-    LDA bcd+0	; And add into result
-    ADC bcd+0
-    STA bcd+0
-    LDA bcd+1	; propagating any carry
-    ADC bcd+1
-    STA bcd+1
-    DEX		    ; And repeat for next bit
-    BNE cnvbit
-    CLD		    ; Back to binary
+.cnv_bit		
+    asl bin		; Shift out one bit
+    lda bcd+0	; And add into result
+    adc bcd+0
+    sta bcd+0
+    lda bcd+1	; propagating any carry
+    adc bcd+1
+    sta bcd+1
+    dex		    ; And repeat for next bit
+    bne cnv_bit
+    cld		    ; Back to binary
 
-    RTS
+    rts
 }
 
-.printDec
+.print_decimal
 {
     tax
     lsr A

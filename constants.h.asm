@@ -11,8 +11,8 @@ SHEILA_SYS_VIA_R5_T1C_H = $fe45
 SHEILA_SYS_VIA_R13_IFR  = $fe4d
 SHEILA_SYS_VIA_PORT_A   = $fe4f
 
-ZERO_PAGE_START         = $80
-ZERO_PAGE_END           = $ff
+ZERO_PAGE_START         = $00
+ZERO_PAGE_END           = $8f
 
 ; %1cctdddd
 ;   |||````-- Data
@@ -54,7 +54,11 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-TRACK_FILENAME                = ".\tracks\7ch\test20.lzc"
+TRACK_PARTS                 = 2
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\nearly_there"
+TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
+TRACK_DST_DRIVE_PREFIX      = ":0."
+TRACK_DST_FILENAME_PREFIX   = "$."
 
 IF USE_SWRAM
     LZSS_PLAYER_H           = ".\lib\lzss-7chs.h.asm"
@@ -66,4 +70,4 @@ ENDIF
 
 LOOP                    = TRUE
 
-DISKSYS_LOADTO_ADDR     = $2200
+DISKSYS_LOADTO_ADDR     = $3C00

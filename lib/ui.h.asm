@@ -15,6 +15,7 @@ swr_bank_0 = MODE7_base_addr + 24 * MODE7_char_width + 0
 
 ttxt_gfx_red   = 145
 ttxt_gfx_green = 146
+ttxt_gfx_blue  = 148
 
 track_title_addr = MODE7_base_addr + 5 * MODE7_char_width + 10
 track_artist_addr = MODE7_base_addr + 6 * MODE7_char_width + 10
