@@ -70,4 +70,4 @@ ENDIF
 
 LOOP                    = TRUE
 
-DISKSYS_LOADTO_ADDR     = $3C00
+DISKSYS_LOADTO_ADDR     = $3c00

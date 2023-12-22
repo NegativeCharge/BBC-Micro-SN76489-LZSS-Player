@@ -4,3 +4,4 @@
 .swr_slot_selected      SKIP 1   ; The currently selected slot ID
 
 .active_swram_banks     SKIP 1
+.current_swram_bank     SKIP 1

@@ -36,8 +36,45 @@
 .get_byte {
     lda $ffff
     inc song_ptr+0
-    bne skip
+    bne skip_hi
     inc song_ptr+1
+
+.skip_hi
+
+IF USE_SWRAM
+    ; Check if we have any SWRAM banks to play
+    php
+	pha
+	txa
+	pha
+	tya
+	pha
+
+    lda #>song_end
+    cmp song_ptr+1
+    bne swram_check_complete
+    lda #<song_end
+    cmp song_ptr+0
+    bne swram_check_complete
+
+    lda current_swram_bank
+    jsr swr_select_slot
+    inc current_swram_bank
+
+    lda #$00
+    sta song_ptr+1
+    lda #$80
+    sta song_ptr+1
+
+.swram_check_complete
+    pla
+	tay
+	pla
+	tax
+	pla
+	plp
+ENDIF
+
 .skip
     rts
 }

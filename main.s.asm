@@ -53,6 +53,7 @@ IF SHOW_UI
     ldx #<screen_filename
     ldy #>screen_filename
     jsr disksys_load_direct
+ENDIF
 
 IF USE_SWRAM
     jsr swr_init
@@ -79,14 +80,14 @@ ENDIF
 ENDIF
 
 IF EMBED_TRACK_INLINE = FALSE
+    IF USE_SWRAM
+        jsr load_swram_banks
+    ENDIF
+
     lda #>song_data
     ldx #<track_filenames
     ldy #>track_filenames
     jsr disksys_load_direct
-
-    IF USE_SWRAM
-        jsr load_swram_banks
-    ENDIF
 ENDIF
 
 IF SHOW_FX
@@ -103,7 +104,6 @@ ENDIF
     sta row_counter+1
 
     sta pad
-ENDIF
 
     jsr sn_chip_reset
 
@@ -123,6 +123,11 @@ IF LOOP
 
     lda cbuf_init+1
     sta cbuf+2
+
+IF USE_SWRAM
+    lda #0
+    sta current_swram_bank
+ENDIF
 
     jmp reinit
 ELSE
@@ -146,6 +151,11 @@ IF EMBED_TRACK_INLINE
     ENDIF
 ENDIF
 
+IF USE_SWRAM
+    skip $4000
+    .song_end
+ENDIF
+
 .end
 
 SAVE "PLAY",start,end,init
@@ -158,7 +168,7 @@ PRINT "------------------------------"
 PRINT "          LZSS Player         "
 PRINT "------------------------------"
 PRINT "TRACK START            = ", ~song_data
-IF CHECK_EOF = FALSE
+IF CHECK_EOF = FALSE OR USE_SWRAM
 PRINT "TRACK END              = ", ~song_end
 ENDIF
 PRINT "HIGH WATERMARK         = ", ~P%

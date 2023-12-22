@@ -149,6 +149,7 @@ ENDIF
 
     ; Set to first bank
     lda #0
+    sta current_swram_bank
     jmp swr_select_slot
 .exit
     rts
