@@ -55,8 +55,8 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-TRACK_PARTS                 = 3
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\symbiosis"
+TRACK_PARTS                 = 1
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\dancer"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE_PREFIX      = ":0."
 TRACK_DST_FILENAME_PREFIX   = "$."

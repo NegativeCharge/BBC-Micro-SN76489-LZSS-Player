@@ -101,6 +101,7 @@ IF USE_SWRAM
 .load_swram_banks
 {
     ldx #TRACK_PARTS - 1
+    beq exit
     stx active_swram_banks
     cpx swr_ram_banks_count
     bcc populate_banks
