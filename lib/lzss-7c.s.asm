@@ -170,8 +170,7 @@ ENDIF
 }
 
 .sn_chip_write
-{
-    sei
+{   
     sta SHEILA_SYS_VIA_PORT_A                 ; place psg data on port a slow bus
     lda #%00000000
     sta SHEILA_SYS_VIA_PORT_B
@@ -181,7 +180,6 @@ ENDIF
     nop                                       ; 3+4+2+2 + 2(LDA #) = 16 clocks = 8us
     lda #%00001000
     sta SHEILA_SYS_VIA_PORT_B
-    cli
     rts
 }
 
