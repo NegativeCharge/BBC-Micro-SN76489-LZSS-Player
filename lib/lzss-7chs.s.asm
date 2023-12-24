@@ -33,49 +33,69 @@
 
 .bit_data    EQUB   1
 
+end_ptr = *+1
+    lda $ffff
+
 .get_byte {
     lda $ffff
     inc song_ptr+0
     bne skip_hi
     inc song_ptr+1
 
-.skip_hi
-
 IF USE_SWRAM
     ; Check if we have any SWRAM banks to play
     php
 	pha
-	txa
-	pha
-	tya
-	pha
 
-    lda #>song_end
+    lda end_ptr+1
     cmp song_ptr+1
     bne swram_check_complete
-    lda #<song_end
+    lda end_ptr+0
     cmp song_ptr+0
     bne swram_check_complete
 
+    txa
+    pha
+    
+IF SHOW_UI AND DEBUG
+    lda #LO(selected_swr_bank)
+	sta writeptr+0
+	lda #HI(selected_swr_bank)
+	sta writeptr+1
+
+    ldy #0
     lda current_swram_bank
-    jsr swr_select_slot
+    jsr write_hex_byte
+ENDIF
+
+    lda current_swram_bank
+	tax
+	lda swr_ram_banks,x
+    sta $f4
+	sta ROMSEL	
+	pla
+	tax
+
     inc current_swram_bank
 
     lda #$00
-    sta song_ptr+1
+    sta song_ptr+0
+
     lda #$80
     sta song_ptr+1
 
+    lda #<swram_song_end
+    sta end_ptr+0
+
+    lda #>swram_song_end
+    sta end_ptr+1
+
 .swram_check_complete
-    pla
-	tay
-	pla
-	tax
 	pla
 	plp
 ENDIF
 
-.skip
+.skip_hi
     rts
 }
 song_ptr = get_byte + 1
@@ -84,6 +104,8 @@ song_ptr = get_byte + 1
     EQUW 0
 .song_ptr_init
     EQUW 0
+.current_swram_bank
+    EQUB 0
 
 align $100
 .buffers SKIP 256 * 7
@@ -95,6 +117,11 @@ align $100
     lda #>song_data
     sta song_ptr+1
     sta song_ptr_init+1
+
+    lda #<song_end
+    sta end_ptr+0
+    lda #>song_end
+    sta end_ptr+1
 
     lda cbuf+1
     sta cbuf_init+0

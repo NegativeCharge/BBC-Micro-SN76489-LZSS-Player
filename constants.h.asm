@@ -1,3 +1,4 @@
+ROMSEL                  = $fe30
 OSBYTE                  = $fff4 
 OSFILE                  = $ffdd
 OSWRCH                  = $ffee
@@ -11,7 +12,7 @@ SHEILA_SYS_VIA_R5_T1C_H = $fe45
 SHEILA_SYS_VIA_R13_IFR  = $fe4d
 SHEILA_SYS_VIA_PORT_A   = $fe4f
 
-ZERO_PAGE_START         = $00
+ZERO_PAGE_START         = $34
 ZERO_PAGE_END           = $8f
 
 ; %1cctdddd
@@ -54,8 +55,8 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-TRACK_PARTS                 = 2
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\nearly_there"
+TRACK_PARTS                 = 3
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\symbiosis"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE_PREFIX      = ":0."
 TRACK_DST_FILENAME_PREFIX   = "$."

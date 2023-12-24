@@ -9,12 +9,12 @@ IF SHOW_UI
     INCLUDE ".\lib\ui.h.asm"
 ENDIF
 
-IF SHOW_FX
-    INCLUDE ".\lib\fx.h.asm"
-ENDIF
-
 IF USE_SWRAM
     INCLUDE ".\lib\swr.h.asm"
+ENDIF
+
+IF SHOW_FX
+    INCLUDE ".\lib\fx.h.asm"
 ENDIF
 
 ORG     BASE
@@ -154,6 +154,9 @@ ENDIF
 IF USE_SWRAM
     skip $4000
     .song_end
+
+    org $c000
+    .swram_song_end
 ENDIF
 
 .end
@@ -170,6 +173,7 @@ PRINT "------------------------------"
 PRINT "TRACK START            = ", ~song_data
 IF CHECK_EOF = FALSE OR USE_SWRAM
 PRINT "TRACK END              = ", ~song_end
+PRINT "SWRAM TRACK END        = ", ~swram_song_end
 ENDIF
 PRINT "HIGH WATERMARK         = ", ~P%
 PRINT "FREE                   = ", ~start+end

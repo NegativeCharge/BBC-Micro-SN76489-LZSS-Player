@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # Local Tests
 tracks/test/
+labels.txt

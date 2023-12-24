@@ -1,6 +1,6 @@
 ; FX code borrowed and adapted from @bitshifters - https://github.com/bitshifters/beeb-tracker/
 .init_fx {
-    ldy #(FX_num_freqs + FX_num_channels) - 1
+    ldy #FX_num_freqs - 1
 	lda #0
 .loop
 	sta freq_array,y

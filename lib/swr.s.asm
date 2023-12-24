@@ -13,7 +13,7 @@
 
 .rom_loop
     stx $f4
-    stx $fe30   ; select rom bank
+    stx ROMSEL  ; select rom bank
     ldy #0      ; assume rom
     lda $8008   ; read byte
     eor #$aa    ; invert, so that we are know we are writing a different value 
@@ -58,7 +58,7 @@
     ; restore previous bank
     pla
     sta $f4
-    sta $fe30
+    sta ROMSEL
     cli
 
     lda swr_ram_banks_count
@@ -85,20 +85,10 @@
     tax
     lda swr_ram_banks,X
     bmi bad_socket
-    sei
     sta $f4
-    sta $fe30
+    sta ROMSEL
     sta swr_slot_selected
-    cli
+
 .bad_socket
-    rts
-}
-
-; A contains ROM bank to be selected
-.swr_select_bank
-{
-    sta &f4
-    sta &fe30
-
     rts
 }

@@ -11,7 +11,6 @@ FX_address_row3 = FX_address_row2 + 40
 FX_address_row4 = FX_address_row3 + 40
 
 FX_num_freqs = 32
-FX_num_channels = 4
 
 .tmp_fx_y               SKIP 1
 .tmp_var                SKIP 1
