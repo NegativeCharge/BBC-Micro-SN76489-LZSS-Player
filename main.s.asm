@@ -68,7 +68,7 @@ IF SHOW_UI
     txa
     asl a
     tay
-    lda #ttxt_gfx_blue
+    lda #ttxt_gfx_cyan
     sta swr_bank_0,y
 
     inx
@@ -95,6 +95,8 @@ IF SHOW_FX
 ENDIF
 
 .reinit
+
+IF SHOW_UI
     lda #0
     sta clock_ticks
     sta clock_mins
@@ -104,6 +106,7 @@ ENDIF
     sta row_counter+1
 
     sta pad
+ENDIF
 
     jsr sn_chip_reset
 

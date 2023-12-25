@@ -35,6 +35,10 @@
     sta swr_ram_banks+1
     sta swr_ram_banks+2
     sta swr_ram_banks+3
+    sta swr_ram_banks+4
+    sta swr_ram_banks+5
+    sta swr_ram_banks+6
+    sta swr_ram_banks+7
 
     ; put available ram bank id's into swr_ram_banks
     ldx #0
@@ -45,7 +49,7 @@
     txa
     sta swr_ram_banks,y
     iny
-    cpy #4
+    cpy #8
     beq finished
 .next
     inx
@@ -79,9 +83,9 @@
 
 .swr_select_slot
 {
-    cmp #4
-    bcs bad_socket ; >= 4
-    and #3
+    cmp #8
+    bcs bad_socket ; >= 8
+    and #%00000111
     tax
     lda swr_ram_banks,X
     bmi bad_socket
