@@ -49,7 +49,7 @@ IF SHOW_UI
     jsr set_mode
     jsr disable_cursor
 
-    lda #>MODE7_base_addr
+    lda #>MODE7_base_addr   ; Load player background
     ldx #<screen_filename
     ldy #>screen_filename
     jsr disksys_load_direct
@@ -57,23 +57,52 @@ ENDIF
 
 IF USE_SWRAM
     jsr swr_init
+IF SHOW_UI
+    beq reset_x
+ELSE
     beq no_swram
+ENDIF
 
 IF SHOW_UI
     ldx #0
 .swr_ui_update_loop
-    lda swr_ram_banks,x
-
     ; Update UI
     txa
     asl a
     tay
     lda #ttxt_gfx_cyan
     sta swr_bank_0,y
+    iny
+    lda #ttxt_gfx_square
+    sta swr_bank_0,y
 
     inx
     cpx swr_ram_banks_count
     bne swr_ui_update_loop
+
+    cpx #TRACK_PARTS-1
+    bcs finished
+    jmp swr_ui_unavailable_banks
+
+.reset_x
+    ldx #0
+
+.swr_ui_unavailable_banks
+    
+    txa
+    asl a
+    tay
+    lda #ttxt_gfx_red
+    sta swr_bank_0,y
+    iny
+    lda #ttxt_gfx_square
+    sta swr_bank_0,y
+
+    inx
+    cpx #TRACK_PARTS-1
+    bcc swr_ui_unavailable_banks
+
+.finished
 ENDIF
 
 .no_swram
@@ -139,8 +168,11 @@ ENDIF
 
 IF EMBED_TRACK_INLINE = FALSE
     .track_filenames
-        FOR n, 0, TRACK_PARTS - 1
-            equs TRACK_DST_DRIVE_PREFIX + TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), 13
+        FOR n, 0, DISK0_PARTS - 1
+            equs TRACK_DST_DRIVE0_PREFIX + TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), 13
+        NEXT
+        FOR n, DISK0_PARTS, DISK0_PARTS + DISK2_PARTS - 1
+            equs TRACK_DST_DRIVE2_PREFIX + TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), 13
         NEXT
 ENDIF
 
@@ -196,8 +228,8 @@ IF EMBED_TRACK_INLINE = FALSE AND USE_SWRAM = FALSE
     PUTFILE TRACK_SRC_FILENAME_PREFIX + TRACK_SRC_FILENAME_SUFFIX, TRACK_DST_FILENAME_PREFIX + "00", song_data
 ENDIF
 
-IF EMBED_TRACK_INLINE = FALSE AND USE_SWRAM
-    FOR n, 0, TRACK_PARTS - 1
+IF EMBED_TRACK_INLINE = FALSE AND USE_SWRAM AND DISK0_PARTS > 0
+    FOR n, 0, DISK0_PARTS - 1
         PUTFILE TRACK_SRC_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), TRACK_DST_FILENAME_PREFIX + RIGHT$("00" + STR$(n), 2), song_data
     NEXT
 ENDIF

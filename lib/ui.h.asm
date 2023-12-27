@@ -22,6 +22,8 @@ ttxt_gfx_magenta = 149
 ttxt_gfx_cyan    = 150
 ttxt_gfx_white   = 151
 
+ttxt_gfx_square  = $7c
+
 
 track_title_addr = MODE7_base_addr + 5 * MODE7_char_width + 10
 track_artist_addr = MODE7_base_addr + 6 * MODE7_char_width + 10

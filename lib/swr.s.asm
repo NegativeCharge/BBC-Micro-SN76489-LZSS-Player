@@ -31,14 +31,9 @@
 
     ; reset swr_ram_banks array
     lda #$ff
-    sta swr_ram_banks+0
-    sta swr_ram_banks+1
-    sta swr_ram_banks+2
-    sta swr_ram_banks+3
-    sta swr_ram_banks+4
-    sta swr_ram_banks+5
-    sta swr_ram_banks+6
-    sta swr_ram_banks+7
+FOR n, 0, TRACK_PARTS-2
+    sta swr_ram_banks+n
+NEXT
 
     ; put available ram bank id's into swr_ram_banks
     ldx #0
@@ -49,7 +44,7 @@
     txa
     sta swr_ram_banks,y
     iny
-    cpy #8
+    cpy #TRACK_PARTS-1
     beq finished
 .next
     inx

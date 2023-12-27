@@ -7,10 +7,31 @@
     ],
     "tasks": [
         {
-            "label": "NanoPlayer.ssd",
+            "label": "Make SSD",
             "type": "shell",
             "args": [
-                "make.bat"
+                "make_ssd.bat"
+            ],
+            "problemMatcher": {
+                "owner": "6502",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            },
+            "group": "build"
+        },{
+            "label": "Make DSD",
+            "type": "shell",
+            "args": [
+                "make_dsd.bat"
             ],
             "problemMatcher": {
                 "owner": "6502",

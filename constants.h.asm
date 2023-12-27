@@ -55,10 +55,13 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-TRACK_PARTS                 = 9
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\gordian_tomb"
+DISK0_PARTS                 = 3
+DISK2_PARTS                 = 0
+TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\albino_4"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
-TRACK_DST_DRIVE_PREFIX      = ":0."
+TRACK_DST_DRIVE0_PREFIX     = ":0."
+TRACK_DST_DRIVE2_PREFIX     = ":2."
 TRACK_DST_FILENAME_PREFIX   = "$."
 
 IF USE_SWRAM
