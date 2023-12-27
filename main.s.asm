@@ -65,6 +65,11 @@ ENDIF
 
 IF SHOW_UI
     ldx #0
+    ldy #TRACK_PARTS
+    cpy #1
+    bcc finished
+    beq finished
+
 .swr_ui_update_loop
     ; Update UI
     txa
