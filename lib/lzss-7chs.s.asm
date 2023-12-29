@@ -33,42 +33,188 @@
 
 .bit_data    EQUB   1
 
+end_ptr = *+1
+    lda $ffff
+
 .get_byte {
-    lda song_data+1
-    inc song_ptr
-    bne skip
+    lda $ffff
+    inc song_ptr+0
+    bne skip_hi
     inc song_ptr+1
-.skip
+
+IF USE_SWRAM
+    ; Check if we have any SWRAM banks to play
+    php
+	pha
+
+    lda end_ptr+1
+    cmp song_ptr+1
+    bne swram_check_complete
+    lda end_ptr+0
+    cmp song_ptr+0
+    bne swram_check_complete
+
+    txa
+    pha
+    
+IF SHOW_UI AND DEBUG
+    lda #LO(debug_selected_swr_bank)
+	sta writeptr+0
+	lda #HI(debug_selected_swr_bank)
+	sta writeptr+1
+
+    ldy #0
+    lda current_swram_bank
+    jsr write_hex_byte
+ENDIF
+
+    lda current_swram_bank
+	tax
+	lda swr_ram_banks,x
+    sta $f4
+	sta ROMSEL	
+	pla
+	tax
+
+    inc current_swram_bank
+
+    lda #$00
+    sta song_ptr+0
+
+    lda #$80
+    sta song_ptr+1
+
+    lda #<swram_song_end
+    sta end_ptr+0
+
+    lda #>swram_song_end
+    sta end_ptr+1
+
+.swram_check_complete
+	pla
+	plp
+ENDIF
+
+.skip_hi
     rts
 }
 song_ptr = get_byte + 1
+
+.cbuf_init
+    EQUW 0
+.song_ptr_init
+    EQUW 0
+.current_swram_bank
+    EQUB 0
 
 align $100
 .buffers SKIP 256 * 7
 
 .play
+    lda #<song_data
+    sta song_ptr+0
+    sta song_ptr_init+0
+    lda #>song_data
+    sta song_ptr+1
+    sta song_ptr_init+1
 
-    lda #<DEFAULT_TRACK_SPEED
-    sta SHEILA_SYS_VIA_R4_T1C_L
-    lda #>DEFAULT_TRACK_SPEED
-    sta SHEILA_SYS_VIA_R5_T1C_H
+    lda #<song_end
+    sta end_ptr+0
+    lda #>song_end
+    sta end_ptr+1
 
+    lda cbuf+1
+    sta cbuf_init+0
+    lda cbuf+2
+    sta cbuf_init+1
+
+    lda #1
+    sta bit_data
+
+    ; Read Header
+
+    \\ Read song speed in hz - 16-bit
+    jsr get_byte
+    sta track_speed+0
+
+    jsr get_byte
+    sta track_speed+1
+
+    \\ Read IRQ rate - 16-bit
+    jsr get_byte
+    sta irq_rate+0
+
+    jsr get_byte
+    sta irq_rate+1
+
+    \\ Read song length - seconds (8-bit), minutes (8-bit)
+    jsr get_byte
+    sta track_length+0
+
+    jsr get_byte
+    sta track_length+1
+
+    \\ Read track title
+    ldx #0
+IF CHECK_EOF
+    stx eof_flag
+ENDIF
+
+.title_loop
+    jsr get_byte
+    cmp #0
+    beq process_artist
+    sta track_title,x
+	inx
+    jmp title_loop
+
+    \\ Read track artist
+.process_artist
+    ldx #0
+
+.artist_loop
+    jsr get_byte
+    cmp #0
+    beq process_year
+    sta track_artist,x
+	inx
+    jmp artist_loop
+
+\\ Read track year
+.process_year
+    ldx #0
+
+.year_loop
+    jsr get_byte
+    cmp #0
+    beq init_song
+    sta track_year,x
+	inx
+    jmp year_loop
+    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Song Initialization - this runs in the first tick:
 ;
 .init_song
 
-    ; Example: here initializes song pointer:
-    ; sta song_ptr
-    ; stx song_ptr + 1
+IF SHOW_UI AND DISPLAY_METADATA
+    jsr print_track_metadata
+ENDIF
+
+    lda irq_rate+0
+    sta SHEILA_SYS_VIA_R4_T1C_L
+    lda irq_rate+1
+    sta SHEILA_SYS_VIA_R5_T1C_H
 
     ; Init all channels:
     ldx #6
     ldy #0
     sty last_noise_byte
     sty last_atten_byte
-    
+    jsr get_byte
+
 .clear
+
     ; Read just init value and store into buffer and SN76489
     jsr get_byte
     sta registers, x
@@ -111,7 +257,7 @@ ENDIF
     bne got_bit
     jsr get_byte       ; Not enough bits, refill!
     ror a              ; Extract a new bit and add a 1 at the high bit (from C set above)
-    sta bit_data       ;
+    sta bit_data       
 .got_bit
     jsr get_byte       ; Always read a byte, it could mean "match size/offset" or "literal byte"
     bcs store          ; Bit = 1 is "literal", bit = 0 is "match"
@@ -121,9 +267,9 @@ ENDIF
     jsr get_byte
     sta chn_copy, x    ; Store in "copy length"
 
-                        ; And start copying first byte
+                       ; And start copying first byte
 .do_copy_byte
-    dec chn_copy, x     ; Decrease match length, increase match position
+    dec chn_copy, x    ; Decrease match length, increase match position
     inc chn_pos, x
     ldy chn_pos, x
 
@@ -132,7 +278,7 @@ ENDIF
 
 .store
     ldy cur_pos
-    sta registers, x        ; Store to output and buffer
+    sta registers, x   ; Store to output and buffer
     sta (bptr), y
 
     ; Increment channel buffer pointer
@@ -154,7 +300,6 @@ ENDIF
     sta SHEILA_SYS_VIA_R13_IFR
 
 .sn_chip_reset
-{
     lda #%11111111
     sta SHEILA_SYS_VIA_R3_DDRA     ; data direction Register A
 
@@ -166,11 +311,9 @@ ENDIF
     lda #%11011111
     jsr sn_chip_write               ; Channel 2
     lda #%11111111
-    jmp sn_chip_write               ; Channel 3 (Noise)
-}
+                                    ; Channel 3 (Noise)
 
 .sn_chip_write
-{   
     sta SHEILA_SYS_VIA_PORT_A                 ; place psg data on port a slow bus
     lda #%00000000
     sta SHEILA_SYS_VIA_PORT_B
@@ -181,11 +324,18 @@ ENDIF
     lda #%00001000
     sta SHEILA_SYS_VIA_PORT_B
     rts
-}
 
 .output {
 
     jsr decode_regs
+
+IF CHECK_EOF
+    ; Check register 9 (CH3 Noise) for eof marker
+    ldx #9
+    lda decoded_registers,x
+    cmp #$08
+    beq eof
+ENDIF
 
     ldy #11
     ldx #0
@@ -218,6 +368,13 @@ ENDIF
     bne reg_loop
 
     rts
+
+IF CHECK_EOF
+.eof
+    lda #1
+    sta eof_flag
+    rts
+ENDIF
 }
 
 .decode_regs
@@ -298,3 +455,15 @@ ENDIF
 
     rts
 }
+
+.track_title        SKIP 30
+.track_artist       SKIP 30
+.track_year         SKIP 30
+.track_speed        SKIP 2
+.track_length       SKIP 2
+.irq_rate           SKIP 2
+
+IF CHECK_EOF
+.eof_flag
+    EQUB 0
+ENDIF

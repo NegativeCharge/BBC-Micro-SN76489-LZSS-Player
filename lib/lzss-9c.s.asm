@@ -42,9 +42,9 @@ align $100
 
 .play
 
-    lda #<TRACK_SPEED
+    lda #<DEFAULT_TRACK_SPEED
     sta SHEILA_SYS_VIA_R4_T1C_L
-    lda #>TRACK_SPEED
+    lda #>DEFAULT_TRACK_SPEED
     sta SHEILA_SYS_VIA_R5_T1C_H
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

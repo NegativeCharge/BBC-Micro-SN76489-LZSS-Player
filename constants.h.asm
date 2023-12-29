@@ -1,3 +1,4 @@
+ROMSEL                  = $fe30
 OSBYTE                  = $fff4 
 OSFILE                  = $ffdd
 OSWRCH                  = $ffee
@@ -11,8 +12,8 @@ SHEILA_SYS_VIA_R5_T1C_H = $fe45
 SHEILA_SYS_VIA_R13_IFR  = $fe4d
 SHEILA_SYS_VIA_PORT_A   = $fe4f
 
-ZERO_PAGE_START         = $80
-ZERO_PAGE_END           = $ff
+ZERO_PAGE_START         = $2c
+ZERO_PAGE_END           = $8f
 
 ; %1cctdddd
 ;   |||````-- Data
@@ -37,27 +38,40 @@ BASE                    = $1100
 SCREEN                  = $7c00
 
 \\ Not needed for 7ch format - included in header
-TRACK_SPEED             = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
+DEFAULT_TRACK_SPEED     = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
 
 DEBUG                   = FALSE
 DEBUG_RASTER            = FALSE
 SHOW_UI                 = TRUE
 SHOW_FX                 = TRUE
 DISPLAY_METADATA        = TRUE
-USE_SWRAM               = FALSE
-CHECK_EOF               = FALSE
-EMBED_TRACK_INLINE      = TRUE
+USE_SWRAM               = TRUE
+CHECK_EOF               = TRUE
+EMBED_TRACK_INLINE      = FALSE
 
 IF USE_SWRAM
-    PLAYER_BKGND        = ".\ui\player5.bin"
+    PLAYER_BKGND        = ".\ui\player5b.bin"
 ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-FILENAME                = ".\tracks\7ch\test20.lzc"
-LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
-LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
+DISK0_PARTS                 = 3
+DISK2_PARTS                 = 0
+TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\Cybernoid"
+TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
+TRACK_DST_DRIVE0_PREFIX     = ":0."
+TRACK_DST_DRIVE2_PREFIX     = ":2."
+TRACK_DST_FILENAME_PREFIX   = "$."
+
+IF USE_SWRAM
+    LZSS_PLAYER_H           = ".\lib\lzss-7chs.h.asm"
+    LZSS_PLAYER_S           = ".\lib\lzss-7chs.s.asm"
+ELSE
+    LZSS_PLAYER_H           = ".\lib\lzss-7ch.h.asm"
+    LZSS_PLAYER_S           = ".\lib\lzss-7ch.s.asm"
+ENDIF
 
 LOOP                    = TRUE
 
-DISKSYS_LOADTO_ADDR     = $3000
+DISKSYS_LOADTO_ADDR     = $3c00

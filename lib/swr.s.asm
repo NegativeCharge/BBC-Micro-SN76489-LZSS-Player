@@ -13,7 +13,7 @@
 
 .rom_loop
     stx $f4
-    stx $fe30   ; select rom bank
+    stx ROMSEL  ; select rom bank
     ldy #0      ; assume rom
     lda $8008   ; read byte
     eor #$aa    ; invert, so that we are know we are writing a different value 
@@ -31,10 +31,9 @@
 
     ; reset swr_ram_banks array
     lda #$ff
-    sta swr_ram_banks+0
-    sta swr_ram_banks+1
-    sta swr_ram_banks+2
-    sta swr_ram_banks+3
+FOR n, 0, TRACK_PARTS-2
+    sta swr_ram_banks+n
+NEXT
 
     ; put available ram bank id's into swr_ram_banks
     ldx #0
@@ -45,7 +44,7 @@
     txa
     sta swr_ram_banks,y
     iny
-    cpy #4
+    cpy #TRACK_PARTS-1
     beq finished
 .next
     inx
@@ -58,7 +57,7 @@
     ; restore previous bank
     pla
     sta $f4
-    sta $fe30
+    sta ROMSEL
     cli
 
     lda swr_ram_banks_count
@@ -79,26 +78,16 @@
 
 .swr_select_slot
 {
-    cmp #4
-    bcs bad_socket ; >= 4
-    and #3
+    cmp #8
+    bcs bad_socket ; >= 8
+    and #%00000111
     tax
     lda swr_ram_banks,X
     bmi bad_socket
-    sei
     sta $f4
-    sta $fe30
+    sta ROMSEL
     sta swr_slot_selected
-    cli
+
 .bad_socket
-    rts
-}
-
-; A contains ROM bank to be selected
-.swr_select_bank
-{
-    sta &f4
-    sta &fe30
-
     rts
 }

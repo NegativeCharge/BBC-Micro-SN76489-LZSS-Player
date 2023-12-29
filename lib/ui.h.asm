@@ -11,10 +11,20 @@ ENDIF
 
 row_counter_addr = MODE7_base_addr + 21 * MODE7_char_width + 3
 
-swr_bank_0 = MODE7_base_addr + 24 * MODE7_char_width + 0
+swr_title = MODE7_base_addr + 9 * MODE7_char_width + 1
+swr_bank = MODE7_base_addr + 9 * MODE7_char_width + 9
+debug_selected_swr_bank = MODE7_base_addr + 18 * MODE7_char_width + 1
 
-ttxt_gfx_red   = 145
-ttxt_gfx_green = 146
+ttxt_gfx_red     = 145
+ttxt_gfx_green   = 146
+ttxt_gfx_yellow  = 147
+ttxt_gfx_blue    = 148
+ttxt_gfx_magenta = 149
+ttxt_gfx_cyan    = 150
+ttxt_gfx_white   = 151
+
+ttxt_gfx_square  = $7c
+
 
 track_title_addr = MODE7_base_addr + 5 * MODE7_char_width + 10
 track_artist_addr = MODE7_base_addr + 6 * MODE7_char_width + 10
