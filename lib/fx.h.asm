@@ -1,5 +1,5 @@
 FX_chr_x = 4
-FX_chr_y = 12
+FX_chr_y = 14
 FX_chr_w = 32
 FX_chr_h = 5
 

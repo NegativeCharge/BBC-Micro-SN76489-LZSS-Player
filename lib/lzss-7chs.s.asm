@@ -58,9 +58,9 @@ IF USE_SWRAM
     pha
     
 IF SHOW_UI AND DEBUG
-    lda #LO(selected_swr_bank)
+    lda #LO(debug_selected_swr_bank)
 	sta writeptr+0
-	lda #HI(selected_swr_bank)
+	lda #HI(debug_selected_swr_bank)
 	sta writeptr+1
 
     ldy #0

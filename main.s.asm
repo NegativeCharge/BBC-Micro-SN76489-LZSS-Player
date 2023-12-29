@@ -76,10 +76,10 @@ IF SHOW_UI
     asl a
     tay
     lda #ttxt_gfx_cyan
-    sta swr_bank_0,y
+    sta swr_bank,y
     iny
     lda #ttxt_gfx_square
-    sta swr_bank_0,y
+    sta swr_bank,y
 
     inx
     cpx swr_ram_banks_count
@@ -98,10 +98,10 @@ IF SHOW_UI
     asl a
     tay
     lda #ttxt_gfx_red
-    sta swr_bank_0,y
+    sta swr_bank,y
     iny
     lda #ttxt_gfx_square
-    sta swr_bank_0,y
+    sta swr_bank,y
 
     inx
     cpx #TRACK_PARTS-1

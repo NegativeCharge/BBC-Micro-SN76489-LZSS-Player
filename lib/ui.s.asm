@@ -326,7 +326,7 @@
 
     ldy temp_y
     jsr printString
-    EQUS "Hz", 0
+    equs "Hz", 0
 
     ldy #0
     lda #LO(track_length_min_addr)

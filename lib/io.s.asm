@@ -100,6 +100,18 @@
 IF USE_SWRAM
 .load_swram_banks
 {
+
+IF SHOW_UI AND TRACK_PARTS > 1
+    ldy #0
+    lda #LO(swr_title)
+	sta writeptr+0
+	lda #HI(swr_title)
+	sta writeptr+1
+
+    jsr printString
+    equs 134, "SW RAM:", 0
+ENDIF
+
     ldx #TRACK_PARTS - 1
     beq exit
     stx active_swram_banks
@@ -123,7 +135,7 @@ IF SHOW_UI
     asl a
     tay
     lda #ttxt_gfx_green
-    sta swr_bank_0,y
+    sta swr_bank,y
     ldy temp_y
 ENDIF
     txa

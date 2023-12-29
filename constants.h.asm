@@ -12,7 +12,7 @@ SHEILA_SYS_VIA_R5_T1C_H = $fe45
 SHEILA_SYS_VIA_R13_IFR  = $fe4d
 SHEILA_SYS_VIA_PORT_A   = $fe4f
 
-ZERO_PAGE_START         = $30
+ZERO_PAGE_START         = $2c
 ZERO_PAGE_END           = $8f
 
 ; %1cctdddd
@@ -55,10 +55,10 @@ ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
 
-DISK0_PARTS                 = 2
+DISK0_PARTS                 = 3
 DISK2_PARTS                 = 0
 TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\nearly_there"
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\Cybernoid"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE0_PREFIX     = ":0."
 TRACK_DST_DRIVE2_PREFIX     = ":2."
