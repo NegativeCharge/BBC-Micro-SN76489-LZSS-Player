@@ -40,17 +40,18 @@ SCREEN                  = $7c00
 \\ Not needed for 7ch format - included in header
 DEFAULT_TRACK_SPEED     = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
 
-DEBUG                   = FALSE
-DEBUG_RASTER            = FALSE
-SHOW_UI                 = TRUE
-SHOW_FX                 = TRUE
-DISPLAY_METADATA        = TRUE
-USE_SWRAM               = TRUE
-CHECK_EOF               = TRUE
-EMBED_TRACK_INLINE      = FALSE
+DEBUG                       = TRUE
+DEBUG_RASTER                = FALSE
+SHOW_UI                     = TRUE
+SHOW_FX                     = TRUE
+DISPLAY_METADATA            = TRUE
+USE_SWRAM                   = TRUE
+CHECK_EOF                   = TRUE
+EMBED_TRACK_INLINE          = FALSE
+HEADER_CONTAINS_FRAME_COUNT = TRUE
 
 IF USE_SWRAM
-    PLAYER_BKGND        = ".\ui\player5b.bin"
+    PLAYER_BKGND        = ".\ui\player6.bin"
 ELSE
     PLAYER_BKGND        = ".\ui\player4.bin"
 ENDIF
@@ -58,7 +59,7 @@ ENDIF
 DISK0_PARTS                 = 3
 DISK2_PARTS                 = 0
 TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\7chs\Cybernoid"
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\Buzzer"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE0_PREFIX     = ":0."
 TRACK_DST_DRIVE2_PREFIX     = ":2."

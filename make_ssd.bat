@@ -1,5 +1,5 @@
 @ECHO OFF
-cd .\tracks\7chs
+cd .\tracks\lzc1
 cmd /c "..\..\tools\swram-split.bat"
 
 cd ..\..
