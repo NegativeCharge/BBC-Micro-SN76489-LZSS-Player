@@ -24,7 +24,6 @@ IF SHOW_FX
 ENDIF
     jsr updateRowData
     jsr updateTicks
-    jsr updateProgressBar
 ENDIF
     jmp wait_frame
 
@@ -39,6 +38,7 @@ ENDIF
     jsr play_frame
 IF SHOW_UI
     jsr incrementRowCounter
+    jsr updateProgressBar
 ENDIF
 
     lda #0

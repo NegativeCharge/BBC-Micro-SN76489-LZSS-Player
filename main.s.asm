@@ -144,6 +144,15 @@ IF SHOW_UI
     sta progress_counter
     sta progress_index
     jsr erase_row
+
+    lda #$93
+    sta progress_bar_addr-2
+
+    lda #$ea
+    sta progress_bar_addr-1
+
+    lda #$b5
+    sta progress_bar_addr+32
 ENDIF
 
     jsr sn_chip_reset
