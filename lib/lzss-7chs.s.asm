@@ -154,12 +154,24 @@ IF HEADER_CONTAINS_FRAME_COUNT
     \\ Read 24-bit frame count value into three bytes
     jsr get_byte
     sta frame_count+0
+    sta progress_interval+0
 
     jsr get_byte
     sta frame_count+1
+    sta progress_interval+1
 
     jsr get_byte
     sta frame_count+2
+    sta progress_interval+2
+
+    ; Calculate progress interval
+    ldy #6
+.divide_by_2
+    lsr progress_interval+2
+    ror progress_interval+1
+    ror progress_interval+0
+    dey
+    bne divide_by_2
 
     IF SHOW_UI AND DEBUG
 
@@ -169,9 +181,6 @@ IF HEADER_CONTAINS_FRAME_COUNT
 	lda #HI(debug_frame_count)
 	sta writeptr+1
 
-    jsr printString
-    equs "Frame Count: ", 0
-    
     lda frame_count+2
     jsr write_hex_byte
 
@@ -181,6 +190,23 @@ IF HEADER_CONTAINS_FRAME_COUNT
 
     iny
     lda frame_count+0
+    jsr write_hex_byte
+    
+    ldy #0
+    lda #LO(debug_progress_interval)
+	sta writeptr+0
+	lda #HI(debug_progress_interval)
+	sta writeptr+1
+
+    lda progress_interval+2
+    jsr write_hex_byte
+
+    iny
+    lda progress_interval+1
+    jsr write_hex_byte
+
+    iny
+    lda progress_interval+0
     jsr write_hex_byte
     
     ENDIF
@@ -506,6 +532,12 @@ ENDIF
 IF HEADER_CONTAINS_FRAME_COUNT
 .frame_count
     EQUB 0,0,0
+.progress_interval
+    EQUB 0,0,0
+.progress_counter
+    EQUB 0,0,0
+.progress_index
+    EQUB 0
 ENDIF
 
 IF CHECK_EOF

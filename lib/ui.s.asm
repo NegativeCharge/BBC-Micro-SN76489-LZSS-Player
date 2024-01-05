@@ -241,6 +241,74 @@
 	rts
 }
 
+.updateProgressBar
+{
+    lda progress_index
+    cmp #64
+    bcs not_yet
+
+    ; Update progress bar
+    inc progress_counter+0
+    bne skip
+    inc progress_counter+1
+    bne skip
+    inc progress_counter+2
+.skip
+    lda progress_counter+0
+    cmp progress_interval+0
+    bne not_yet
+    lda progress_counter+1
+    cmp progress_interval+1
+    bne not_yet
+    lda progress_counter+2
+    cmp progress_interval+2
+    bne not_yet
+
+    ; Reset counter
+    lda #0
+    sta progress_counter+0
+    sta progress_counter+1
+    sta progress_counter+2
+
+    ; Clear current graphic at offset
+    lda progress_index
+    beq skip_initial
+    lsr a
+    tax
+    lda #172
+    sta progress_bar_addr, x
+
+.skip_initial
+    ; Get the index, find chr X (index>>1, since 2 pixels per chr)
+    lda progress_index
+    tay
+    lsr a
+    tax
+    tya
+    and #1                          ; Odd or even
+    tay
+    lda playtime_table, Y
+    sta progress_bar_addr, X
+
+    ; Increment progress offset and render new bar graphic
+    inc progress_index
+
+.not_yet
+    rts
+}
+
+.erase_row
+{
+    ldx #32
+    txa
+.loop
+    sta progress_bar_addr-1, x
+    dex
+    bne loop
+
+    rts
+}
+
 .set_mode
 {    
     \\ Set MODE
@@ -537,3 +605,6 @@
 .noise_note_1 EQUS "Md"
 .noise_note_2 EQUS "Hi"
 .noise_note_3 EQUS "T2"
+
+.playtime_table
+    EQUB 164, 172

@@ -24,6 +24,7 @@ IF SHOW_FX
 ENDIF
     jsr updateRowData
     jsr updateTicks
+    jsr updateProgressBar
 ENDIF
     jmp wait_frame
 

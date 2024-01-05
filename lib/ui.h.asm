@@ -10,11 +10,13 @@ clock_addr = MODE7_base_addr + 1 * MODE7_char_width + 34
 ENDIF
 
 row_counter_addr = MODE7_base_addr + 21 * MODE7_char_width + 3
+progress_bar_addr = MODE7_base_addr + 10 * MODE7_char_width + 4
 
 swr_title = MODE7_base_addr + 9 * MODE7_char_width + 1
 swr_bank = MODE7_base_addr + 9 * MODE7_char_width + 9
 debug_selected_swr_bank = MODE7_base_addr + 11 * MODE7_char_width + 2
-debug_frame_count = MODE7_base_addr + 11 * MODE7_char_width + 20
+debug_frame_count = MODE7_base_addr + 11 * MODE7_char_width + 25
+debug_progress_interval = debug_frame_count + 7
 
 ttxt_gfx_red     = 145
 ttxt_gfx_green   = 146

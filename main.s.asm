@@ -140,6 +140,10 @@ IF SHOW_UI
     sta row_counter+1
 
     sta pad
+
+    sta progress_counter
+    sta progress_index
+    jsr erase_row
 ENDIF
 
     jsr sn_chip_reset
