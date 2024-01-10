@@ -36,6 +36,7 @@ ENDIF
 	sta reentry
 
     jsr play_frame
+
 IF SHOW_UI
     jsr incrementRowCounter
     jsr updateProgressBar

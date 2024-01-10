@@ -11,17 +11,18 @@ ENDIF
 
 row_counter_addr = MODE7_base_addr + 21 * MODE7_char_width + 3
 
-IF USE_SWRAM
-    progress_bar_addr = MODE7_base_addr + 11 * MODE7_char_width + 4
+IF USE_SWRAM AND TRACK_PARTS > 1
+progress_bar_addr = MODE7_base_addr + 11 * MODE7_char_width + 4
 ELSE
-    progress_bar_addr = MODE7_base_addr + 10 * MODE7_char_width + 4
+progress_bar_addr = MODE7_base_addr + 10 * MODE7_char_width + 4
 ENDIF
 
 swr_title = MODE7_base_addr + 9 * MODE7_char_width + 1
 swr_bank = MODE7_base_addr + 9 * MODE7_char_width + 9
 debug_selected_swr_bank = MODE7_base_addr + 11 * MODE7_char_width + 2
-debug_frame_count = MODE7_base_addr + 11 * MODE7_char_width + 25
+debug_frame_count = MODE7_base_addr + 12 * MODE7_char_width + 23
 debug_progress_interval = debug_frame_count + 7
+debug_footer = MODE7_base_addr + 24 * MODE7_char_width + 1
 
 ttxt_gfx_red     = 145
 ttxt_gfx_green   = 146
