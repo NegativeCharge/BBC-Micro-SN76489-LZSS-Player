@@ -5,6 +5,8 @@ GUARD   ZERO_PAGE_END
 
 INCLUDE LZSS_PLAYER_H
 
+INCLUDE ".\lib\irq.h.asm"
+
 IF SHOW_UI
     INCLUDE ".\lib\ui.h.asm"
 ENDIF
@@ -156,10 +158,7 @@ IF SHOW_UI
 ENDIF
 
     jsr sn_chip_reset
-
-    sei                         ; Disable interrupts
     jsr play
-    cli                         ; Enable interrupts
 
 IF LOOP
     lda song_ptr_init+0

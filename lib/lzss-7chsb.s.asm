@@ -296,6 +296,7 @@ ENDIF
 
     jsr output
 
+    jsr irq_init
     jmp wait_frame
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -366,7 +367,7 @@ ENDIF
 
 .sn_chip_reset
     lda #%11111111
-    sta SHEILA_SYS_VIA_R3_DDRA     ; data direction Register A
+    sta SHEILA_SYS_VIA_R3_DDRA      ; Data Direction Register A
 
     ; Silence channels 0, 1, 2, 3
     lda #%10011111
@@ -376,19 +377,42 @@ ENDIF
     lda #%11011111
     jsr sn_chip_write               ; Channel 2
     lda #%11111111
-                                    ; Channel 3 (Noise)
+    jmp sn_chip_write               ; Channel 3 (Noise)
+
+.sn_chip_write_with_attenuation
+    tax
+    and #%11110000   ; %xrrr0000
+    sta remask+1
+    txa              ; %xrrrvvvv
+    and #%00001111   ; %0000vvvv
+    tax
+    lda sn_volume_table,x
+.remask 
+    ora #%11111111
 
 .sn_chip_write
-    sta SHEILA_SYS_VIA_PORT_A                 ; place psg data on port a slow bus
-    lda #%00000000
-    sta SHEILA_SYS_VIA_PORT_B
-    pha
-    pla
+    sei
+    stx temp_x
+    ldx #%11111111
+    stx SHEILA_SYS_VIA_R3_DDRA
+    sta SHEILA_SYS_VIA_PORT_A                   ; Place PSG data on port a slow bus
+    inx
+    stx SHEILA_SYS_VIA_PORT_B
     nop
-    nop                                       ; 3+4+2+2 + 2(LDA #) = 16 clocks = 8us
+    nop
+    nop
     lda #%00001000
     sta SHEILA_SYS_VIA_PORT_B
+    ldx temp_x
+    cli
     rts
+
+IF CHECK_EOF
+.eof
+    lda #$01
+    sta eof_flag
+    rts
+ENDIF
 
 .output
 
@@ -408,100 +432,31 @@ ENDIF
 .reg_loop
     lda decoded_registers,x
 
-    cpx #9
+    cpx #9                      ; CH3 Noise
     bne write_to_sn
     cmp last_noise_byte
-    beq cont
+    beq finish_loop
 
     sta last_noise_byte
 
 .write_to_sn
-    cpx #10
+    cpx #10                     ; CH3 Attenuation
     bne continue_write
     cmp last_atten_byte
-    beq cont
+    beq finish_loop
 
     sta last_atten_byte
 
 .continue_write
-    cpx #0
-    beq bass_0
-    cpx #3
-    beq bass_1
-    cpx #6
-    beq bass_2
-
     ora masks, x
     jsr sn_chip_write
 
-    jmp cont
-
-.bass_0
-    sta temp_a
-    lda bass_flags+0
-    bne process_bass_jmp
-
-    lda temp_a
-    ora masks, x
-    jsr sn_chip_write
-    jmp cont
-
-.bass_1
-    sta temp_a
-    lda bass_flags+1
-    bne process_bass_jmp
-
-    lda temp_a
-    ora masks, x
-    jsr sn_chip_write
-    jmp cont
-
-.bass_2
-    sta temp_a
-    lda bass_flags+2
-    bne process_bass_jmp
-
-    lda temp_a
-    ora masks, x
-    jsr sn_chip_write
-    jmp cont
-
-.process_bass_jmp           ; If we're here, were at the first byte of the two bytes for the SN76489, and the bass flag is set on the channel
-    jsr process_bass
-
-.cont
+.finish_loop
     inx
     dey
     bne reg_loop
 
     rts
-
-IF CHECK_EOF
-.eof
-    lda #1
-    sta eof_flag
-    rts
-ENDIF
-
-.process_bass
-    lda temp_a
-
-    ; TEMPORARY - Silence bass notes
-    lda #$00
-    ora masks, x
-    jsr sn_chip_write
-    inx
-    dey
-
-    lda #$00
-    ora masks, x
-    jsr sn_chip_write
-    inx
-    dey
-
-    lda #$0f
-    ora masks, x
-    jmp sn_chip_write
 
 .decode_regs
 {
@@ -523,113 +478,46 @@ ENDIF
     beq case_0
     cpx #5
     beq case_1
-    cpx #6
-    beq case_2
-    jmp cont
-
+    
 .case_0
     stx temp_x
     sta temp_a
-    and #&0f
+    and #%00001111
     ldx current_reg
     sta decoded_registers, x        \\ Tone - Latch      (0)
     
     lda temp_a
-    lsr a:lsr a:lsr a:lsr a
+    lsr a
+    lsr a
+    lsr a
+    lsr a
 
     inc current_reg
+    cpx #9
+    beq skip_1
     inc current_reg
+
+.skip_1
     ldx current_reg
     sta decoded_registers, x        \\ Attenuation       (2)
+
+    cpx #9
+    beq skip_2
     dec current_reg
 
-    ldx temp_x
-    
+.skip_2
     jmp cont
 
-.case_1
+.case_1                             ; Compressed registers 1, 3, or 5 => Registers 1, 4, 7
     stx temp_x
 
-    cmp #%01000000
-    bcs bass
-
-    and #%00111111
     ldx current_reg
     sta decoded_registers, x        \\ Tone - Data       (1)
-    jsr clear_bass_flag
     inc current_reg
     inc current_reg
-    ldx temp_x
-    
-    jmp cont
 
-.bass
-    
-IF DEBUG
-    jsr debug_bass
-ENDIF
-
-    and #%00111111
-    ldx current_reg
-    sta decoded_registers, x
-
-    dex
-    lda decoded_registers, x
-    asl a
-    asl a
-    asl a
-    asl a
-    ora #$06
-    sta decoded_registers, x
-    inx
-
-    lda #1
-    cpx #1
-    beq bass_0
-    cpx #4
-    beq bass_1
-    cpx #7
-    beq bass_2
-    jmp bass_end
-
-.bass_0
-    sta bass_flags+0
-    jmp bass_end
-.bass_1
-    sta bass_flags+1
-    jmp bass_end
-.bass_2
-    sta bass_flags+2
-
-.bass_end
-    inc current_reg
-    inc current_reg
-    ldx temp_x
-
-    jmp cont
-
-.case_2
-    stx temp_x
-    sta temp_a
-    and #&0f
-    ldx current_reg
-    sta decoded_registers, x        \\ Tone - Latch      (0)
-    
-    lda temp_a
-    lsr a:lsr a:lsr a:lsr a
-
-    inc current_reg
-    ldx current_reg
-    sta decoded_registers, x        \\ Attenuation       (1)
-    
-    ldx temp_x
-    
 .cont
-
-IF DEBUG
-    jsr debug_bass_flags
-ENDIF
-
+    ldx temp_x
     inx
     dey
     bne reg_jmp
@@ -640,90 +528,12 @@ ENDIF
     jmp reg_loop
 }
 
-.clear_bass_flag {
-    sta temp_a
-    lda #0
-    cpx #1
-    beq bass_0
-    cpx #4
-    beq bass_1
-    cpx #7
-    beq bass_2
-    jmp bass_end
-
-.bass_0
-    sta bass_flags+0
-    jmp bass_end
-.bass_1
-    sta bass_flags+1
-    jmp bass_end
-.bass_2
-    sta bass_flags+2
-
-.bass_end
-    lda temp_a
-    rts
-}
-
-.debug_bass {
-    sta temp_a
-    sty temp_y
-    lda #LO(debug_footer)
-	sta writeptr+0
-	lda #HI(debug_footer)
-	sta writeptr+1
-
-    ldy #0
-    inc bass_count+0
-    bne skip_hi
-    inc bass_count+1
-    
-.skip_hi
-    lda bass_count+1
-    jsr write_hex_byte
-    iny
-    lda bass_count+0
-    jsr write_hex_byte
-
-    rts
-}
-
-.debug_bass_flags
-{
-    sta temp_a
-    sty temp_y
-
-    lda #LO(debug_footer+7)
-	sta writeptr+0
-	lda #HI(debug_footer+7)
-	sta writeptr+1
-
-    ldy #0
-
-    lda bass_flags+0
-    jsr write_hex_nybble
-
-    iny
-    lda bass_flags+1
-    jsr write_hex_nybble
-
-    iny
-    lda bass_flags+2
-    jsr write_hex_nybble
-
-    ldy temp_y
-    lda temp_a
-
-    rts
-}
-
 .track_title        SKIP 30
 .track_artist       SKIP 30
 .track_year         SKIP 30
 .track_speed        SKIP 2
 .track_length       SKIP 2
 .irq_rate           SKIP 2
-
 
 IF HEADER_CONTAINS_FRAME_COUNT
 .frame_count
@@ -743,8 +553,10 @@ ENDIF
 
 .bass_flags
     EQUB 0,0,0
+.sn_volume_table
+    EQUB 3,4,5,6,7,8,9,10,11,12,13,14,15,15,15,15
 
-IF DEBUG
+IF DEBUG AND SOFTBASS_ENABLED
 .bass_count
     EQUW 0
 ENDIF

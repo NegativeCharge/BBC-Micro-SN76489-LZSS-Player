@@ -23,13 +23,13 @@
     cmp #$0f
     beq tone0_muted
 
-    lda decoded_registers+1     ; Upper 6 bytes - 00111111
+    lda decoded_registers+1     ; Upper 6 bits - 00111111
     pha
     lsr a:lsr a:lsr a:lsr a
     jsr write_hex_nybble
     pla
     asl a:asl a:asl a:asl a
-    ora decoded_registers+0     ; Low 4 bytes   - 00001111
+    ora decoded_registers+0     ; Low 4 bits   - 00001111
 
     iny           
     jsr write_hex_byte
