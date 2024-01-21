@@ -114,6 +114,8 @@ align $100
 .buffers SKIP 256 * 7
 
 .play
+    jsr sn_chip_reset
+
     lda #<song_data
     sta song_ptr+0
     sta song_ptr_init+0
@@ -297,7 +299,25 @@ ENDIF
     jsr output
 
     jsr irq_init
-    jmp wait_frame
+
+.play_loop
+    
+IF CHECK_EOF
+    lda eof_flag
+    beq continue_play
+ELSE
+    lda song_ptr + 1
+    cmp #>song_end
+    bne continue_play
+    lda song_ptr + 0
+    cmp #<song_end
+    bne continue_play
+ENDIF
+
+	jmp reset
+
+.continue_play
+    jmp play_loop
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Play one frame of the song
@@ -315,27 +335,27 @@ ENDIF
 
     ; Loop through all "channels", one for each SN76489 register
 .chn_loop
-    lda chn_copy, x    ; Get status of this stream
-    bne do_copy_byte   ; If > 0 we are copying bytes
+    lda chn_copy, x                 ; Get status of this stream
+    bne do_copy_byte                ; If > 0 we are copying bytes
 
     ; We are decoding a new match/literal
-    lsr bit_data       ; Get next bit
+    lsr bit_data                    ; Get next bit
     bne got_bit
-    jsr get_byte       ; Not enough bits, refill!
-    ror a              ; Extract a new bit and add a 1 at the high bit (from C set above)
+    jsr get_byte                    ; Not enough bits, refill!
+    ror a                           ; Extract a new bit and add a 1 at the high bit (from C set above)
     sta bit_data       
 .got_bit
-    jsr get_byte       ; Always read a byte, it could mean "match size/offset" or "literal byte"
-    bcs store          ; Bit = 1 is "literal", bit = 0 is "match"
+    jsr get_byte                    ; Always read a byte, it could mean "match size/offset" or "literal byte"
+    bcs store                       ; Bit = 1 is "literal", bit = 0 is "match"
 
-    sta chn_pos, x     ; Store in "copy pos"
+    sta chn_pos, x                  ; Store in "copy pos"
 
     jsr get_byte
-    sta chn_copy, x    ; Store in "copy length"
+    sta chn_copy, x                 ; Store in "copy length"
 
-                       ; And start copying first byte
+                                    ; And start copying first byte
 .do_copy_byte
-    dec chn_copy, x    ; Decrease match length, increase match position
+    dec chn_copy, x                 ; Decrease match length, increase match position
     inc chn_pos, x
     ldy chn_pos, x
 
@@ -344,14 +364,14 @@ ENDIF
 
 .store
     ldy cur_pos
-    sta registers, x   ; Store to output and buffer
+    sta registers, x                ; Store to output and buffer
     sta (bptr), y
 
     ; Increment channel buffer pointer
     inc bptr+1
 
     dex
-    bpl chn_loop        ; Next channel
+    bpl chn_loop                    ; Next channel
 
     inc cur_pos
 
@@ -381,10 +401,10 @@ ENDIF
 
 .sn_chip_write_with_attenuation
     tax
-    and #%11110000   ; %xrrr0000
+    and #%11110000                  ; %xrrr0000
     sta remask+1
-    txa              ; %xrrrvvvv
-    and #%00001111   ; %0000vvvv
+    txa                             ; %xrrrvvvv
+    and #%00001111                  ; %0000vvvv
     tax
     lda sn_volume_table,x
 .remask 
@@ -494,19 +514,17 @@ ENDIF
 
     inc current_reg
     cpx #9
-    beq skip_1
+    beq skip
     inc current_reg
 
-.skip_1
+.skip
     ldx current_reg
     sta decoded_registers, x        \\ Attenuation       (2)
 
     cpx #9
-    beq skip_2
+    beq decode_continue
     dec current_reg
-
-.skip_2
-    jmp cont
+    jmp decode_continue
 
 .case_1                             ; Compressed registers 1, 3, or 5 => Registers 1, 4, 7
     stx temp_x
@@ -516,16 +534,13 @@ ENDIF
     inc current_reg
     inc current_reg
 
-.cont
+.decode_continue
     ldx temp_x
     inx
     dey
-    bne reg_jmp
+    bne reg_loop
 
     rts
-
-.reg_jmp
-    jmp reg_loop
 }
 
 .track_title        SKIP 30

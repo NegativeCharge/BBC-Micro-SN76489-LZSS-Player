@@ -1,11 +1,11 @@
-INCLUDE "constants.h.asm"
+INCLUDE "constants.softbass.h.asm"
 
 ORG     ZERO_PAGE_START
 GUARD   ZERO_PAGE_END
 
 INCLUDE LZSS_PLAYER_H
 
-INCLUDE ".\lib\irq.h.asm"
+INCLUDE IRQ_H
 
 IF SHOW_UI
     INCLUDE ".\lib\ui.h.asm"
@@ -24,7 +24,7 @@ GUARD   SCREEN
 
 .start
     INCLUDE ".\lib\io.s.asm"
-    INCLUDE ".\lib\irq.s.asm"
+    INCLUDE IRQ_S
 
 IF DEBUG
     INCLUDE ".\debug.s.asm"
@@ -157,7 +157,6 @@ IF SHOW_UI
     sta progress_bar_addr+32
 ENDIF
 
-    jsr sn_chip_reset
     jsr play
 
 IF LOOP
