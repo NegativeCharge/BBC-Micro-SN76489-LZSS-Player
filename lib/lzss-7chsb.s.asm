@@ -462,7 +462,7 @@ ENDIF
 
     ldx #0
     lda decoded_registers,x
-    sta firstbyte
+    sta first_byte
     ldx #1                      ; Tone 0
     lda decoded_registers,x
     ora masks, x
@@ -471,7 +471,7 @@ ENDIF
     ldx #3
     lda decoded_registers,x
     ora masks, x
-    sta firstbyte
+    sta first_byte
     ldx #4                      ; Tone 1
     lda decoded_registers,x
     ora masks, x
@@ -480,7 +480,7 @@ ENDIF
     ldx #6
     lda decoded_registers,x
     ora masks, x
-    sta firstbyte
+    sta first_byte
     ldx #7                      ; Tone 2
     lda decoded_registers,x
     ora masks, x
@@ -492,6 +492,9 @@ ENDIF
     sta u1writeval
     bit bass_flag+0
     bmi no_vol_0
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass_flags
+ENDIF
     jsr sn_chip_write_with_attenuation
 
 .no_vol_0
@@ -501,6 +504,9 @@ ENDIF
     sta u2writeval
     bit bass_flag+1
     bmi no_vol_1
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass_flags
+ENDIF
     jsr sn_chip_write_with_attenuation
 
 .no_vol_1
@@ -510,9 +516,13 @@ ENDIF
     sta s2writeval
     bit bass_flag+2
     bmi no_vol_2
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass_flags
+ENDIF
     jsr sn_chip_write_with_attenuation
 
 .no_vol_2
+
     rts
 }
 
@@ -595,7 +605,7 @@ ENDIF
     ; Mask out bit 6 of data byte
     and #%00111111
     tay
-    lda firstbyte
+    lda first_byte
     asl a
     asl a
     asl a
@@ -627,6 +637,9 @@ ENDIF
     jmp do_normal_tone
 
 .do_bass
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass
+ENDIF
     jsr set_up_timer_values
     sta SHEILA_USER_VIA_R6_T1L_L    ; Tone 0 bass timer_lo
     sty SHEILA_USER_VIA_R7_T1L_H    ; Tone 0 bass timer hi
@@ -649,7 +662,7 @@ ENDIF
 .do_normal_tone
 {
     tay
-    lda firstbyte
+    lda first_byte
     jsr sn_chip_write
     tya
     jmp sn_chip_write
@@ -678,6 +691,9 @@ ENDIF
     jmp do_normal_tone
 
 .do_bass
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass
+ENDIF
     jsr set_up_timer_values
     sta u2latchlo                   ; Tone 1 bass timer lo
     sty u2latchhi                   ; Tone 1 bass timer hi
@@ -723,6 +739,9 @@ ENDIF
     jmp do_normal_tone
 
 .do_bass
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass
+ENDIF
     jsr set_up_timer_values
     sta s2latchlo                   ; Tone 2 bass timer lo
     sty s2latchhi                   ; Tone 2 bass timer hi
@@ -746,6 +765,66 @@ ENDIF
     rts
 }
 
+IF DEBUG AND SOFTBASS_ENABLED
+.debug_bass_flags
+{
+    sta temp_a
+    sty temp_y
+
+    lda #LO(debug_footer+7)
+	sta writeptr+0
+	lda #HI(debug_footer+7)
+	sta writeptr+1
+
+    ldy #0
+
+    lda bass_flag+0
+    jsr write_hex_byte
+
+    iny:iny
+    lda bass_flag+1
+    jsr write_hex_byte
+
+    iny:iny
+    lda bass_flag+2
+    jsr write_hex_byte
+
+    ldy temp_y
+    lda temp_a
+
+    rts
+}
+ENDIF
+
+IF DEBUG AND SOFTBASS_ENABLED
+.debug_bass {
+    sta temp_a
+    sty temp_y
+
+    lda #LO(debug_footer)
+	sta writeptr+0
+	lda #HI(debug_footer)
+	sta writeptr+1
+
+    ldy #0
+    inc bass_count+0
+    bne skip_hi
+    inc bass_count+1
+    
+.skip_hi
+    lda bass_count+1
+    jsr write_hex_byte
+    iny
+    lda bass_count+0
+    jsr write_hex_byte
+
+    ldy temp_y
+    lda temp_a
+
+    rts
+}
+ENDIF
+
 .track_title        SKIP 30
 .track_artist       SKIP 30
 .track_year         SKIP 30
@@ -753,8 +832,11 @@ ENDIF
 .track_length       SKIP 2
 .irq_rate           SKIP 2
 
-.firstbyte 
+.first_byte 
     EQUB 0
+
+.bass_flag
+    EQUB 0, 0, 0
 
 IF HEADER_CONTAINS_FRAME_COUNT
 .frame_count
@@ -772,8 +854,6 @@ IF CHECK_EOF
     EQUB 0
 ENDIF
 
-.bass_flags
-    EQUB 0,0,0
 .sn_volume_table
     EQUB 3,4,5,6,7,8,9,10,11,12,13,14,15,15,15,15
 
@@ -781,6 +861,3 @@ IF DEBUG AND SOFTBASS_ENABLED
 .bass_count
     EQUW 0
 ENDIF
-
-.bass_flag
-    EQUB 0, 0, 0

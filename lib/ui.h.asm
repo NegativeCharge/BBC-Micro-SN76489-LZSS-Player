@@ -14,8 +14,8 @@ progress_bar_addr = MODE7_base_addr + 11 * MODE7_char_width + 4
 
 swr_title = MODE7_base_addr + 9 * MODE7_char_width + 1
 swr_bank = MODE7_base_addr + 9 * MODE7_char_width + 9
-debug_selected_swr_bank = MODE7_base_addr + 11 * MODE7_char_width + 2
-debug_frame_count = MODE7_base_addr + 12 * MODE7_char_width + 23
+debug_selected_swr_bank = MODE7_base_addr + 12 * MODE7_char_width + 5
+debug_frame_count = MODE7_base_addr + 12 * MODE7_char_width + 22
 debug_progress_interval = debug_frame_count + 7
 debug_footer = MODE7_base_addr + 24 * MODE7_char_width + 1
 
