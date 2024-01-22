@@ -462,6 +462,7 @@ ENDIF
 
     ldx #0
     lda decoded_registers,x
+    ora masks, x
     sta first_byte
     ldx #1                      ; Tone 0
     lda decoded_registers,x
@@ -739,9 +740,6 @@ ENDIF
     jmp do_normal_tone
 
 .do_bass
-IF DEBUG AND SOFTBASS_ENABLED
-    jsr debug_bass
-ENDIF
     jsr set_up_timer_values
     sta s2latchlo                   ; Tone 2 bass timer lo
     sty s2latchhi                   ; Tone 2 bass timer hi

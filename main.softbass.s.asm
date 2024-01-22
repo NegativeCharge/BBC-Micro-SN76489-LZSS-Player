@@ -141,6 +141,11 @@ IF SHOW_UI
     sta row_counter+0
     sta row_counter+1
 
+IF DEBUG AND SOFTBASS_ENABLED
+    sta bass_count+0
+    sta bass_count+1
+ENDIF
+
     sta pad
 
     sta progress_counter
