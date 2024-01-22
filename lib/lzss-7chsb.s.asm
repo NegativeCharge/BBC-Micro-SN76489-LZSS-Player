@@ -386,9 +386,7 @@ ENDIF
     sta SHEILA_SYS_VIA_R13_IFR
 
 .sn_chip_reset
-    lda #%11111111
-    sta SHEILA_SYS_VIA_R3_DDRA      ; Data Direction Register A
-
+{
     ; Silence channels 0, 1, 2, 3
     lda #%10011111
     jsr sn_chip_write               ; Channel 0
@@ -398,8 +396,10 @@ ENDIF
     jsr sn_chip_write               ; Channel 2
     lda #%11111111
     jmp sn_chip_write               ; Channel 3 (Noise)
+}
 
 .sn_chip_write_with_attenuation
+{
     tax
     and #%11110000                  ; %xrrr0000
     sta remask+1
@@ -409,23 +409,26 @@ ENDIF
     lda sn_volume_table,x
 .remask 
     ora #%11111111
+}
 
 .sn_chip_write
+{
+    php
     sei
-    stx temp_x
-    ldx #%11111111
+    ldx #&ff
     stx SHEILA_SYS_VIA_R3_DDRA
-    sta SHEILA_SYS_VIA_PORT_A                   ; Place PSG data on port a slow bus
+    sta SHEILA_SYS_VIA_PORT_A
     inx
     stx SHEILA_SYS_VIA_PORT_B
     nop
     nop
     nop
-    lda #%00001000
+    lda #8
     sta SHEILA_SYS_VIA_PORT_B
-    ldx temp_x
     cli
+    plp
     rts
+}
 
 IF CHECK_EOF
 .eof
@@ -434,49 +437,84 @@ IF CHECK_EOF
     rts
 ENDIF
 
-.output
+.output {
 
     jsr decode_regs
 
 IF CHECK_EOF
     ; Check register 9 (CH3 Noise) for eof marker
-    ldx #9
+    ldx #9                      ; Tone 3
     lda decoded_registers,x
     cmp #$08
     beq eof
+    ora masks, x
+    cmp last_noise_byte
+    beq no_vol_3
+    sta last_noise_byte
+    jsr sn_chip_write
 ENDIF
 
-    ldy #11
-    ldx #0
-
-.reg_loop
+.no_vol_3
+    ldx #10                     ; Volume 3
     lda decoded_registers,x
-
-    cpx #9                      ; CH3 Noise
-    bne write_to_sn
-    cmp last_noise_byte
-    beq finish_loop
-
-    sta last_noise_byte
-
-.write_to_sn
-    cpx #10                     ; CH3 Attenuation
-    bne continue_write
-    cmp last_atten_byte
-    beq finish_loop
-
-    sta last_atten_byte
-
-.continue_write
     ora masks, x
-    jsr sn_chip_write
+    jsr sn_chip_write_with_attenuation
 
-.finish_loop
-    inx
-    dey
-    bne reg_loop
+    ldx #0
+    lda decoded_registers,x
+    sta firstbyte
+    ldx #1                      ; Tone 0
+    lda decoded_registers,x
+    ora masks, x
+    jsr do_tone_0
 
+    ldx #3
+    lda decoded_registers,x
+    ora masks, x
+    sta firstbyte
+    ldx #4                      ; Tone 1
+    lda decoded_registers,x
+    ora masks, x
+    jsr do_tone_1
+ 
+    ldx #6
+    lda decoded_registers,x
+    ora masks, x
+    sta firstbyte
+    ldx #7                      ; Tone 2
+    lda decoded_registers,x
+    ora masks, x
+    jsr do_tone_2
+ 
+    ldx #2                      ; Volume 0
+    lda decoded_registers,x
+    ora masks, x
+    sta u1writeval
+    bit bass_flag+0
+    bmi no_vol_0
+    jsr sn_chip_write_with_attenuation
+
+.no_vol_0
+    ldx #5                      ; Volume 1
+    lda decoded_registers,x
+    ora masks, x
+    sta u2writeval
+    bit bass_flag+1
+    bmi no_vol_1
+    jsr sn_chip_write_with_attenuation
+
+.no_vol_1
+    ldx #8                      ; Volume 2
+    lda decoded_registers,x
+    ora masks, x
+    sta s2writeval
+    bit bass_flag+2
+    bmi no_vol_2
+    jsr sn_chip_write_with_attenuation
+
+.no_vol_2
     rts
+}
 
 .decode_regs
 {
@@ -543,12 +581,180 @@ ENDIF
     rts
 }
 
+; A is pitch register: $81, $a1, $c1
+.set_bitbang_pitch
+{
+    jsr sn_chip_write
+    lda #$00
+    jmp sn_chip_write
+}
+
+; in: A has second byte. out: A has timer lo, Y has timer hi
+.set_up_timer_values
+{
+    ; Mask out bit 6 of data byte
+    and #%00111111
+    tay
+    lda firstbyte
+    asl a
+    asl a
+    asl a
+    asl a
+    ora #%00000110
+    rts
+}
+
+;in: A has second byte
+.do_tone_0
+{
+    cmp #%01000000                  ; Bit 7 is always clear
+    bcs do_bass
+
+    ; Bass is now off. Was it previously on?
+    bit bass_flag+0
+    bpl do_normal_tone
+
+    ; Turn off IRQ, reset flag
+    pha
+    lda #%01000000
+    sta SHEILA_USER_VIA_R14_IER
+    sta SHEILA_USER_VIA_R13_IFR     ; Clear
+    lda #0
+    sta bass_flag+0
+    lda u1writeval                  ; Restore volume
+    jsr sn_chip_write_with_attenuation
+    pla
+    jmp do_normal_tone
+
+.do_bass
+    jsr set_up_timer_values
+    sta SHEILA_USER_VIA_R6_T1L_L    ; Tone 0 bass timer_lo
+    sty SHEILA_USER_VIA_R7_T1L_H    ; Tone 0 bass timer hi
+
+    ; Is bass already on?
+    bit bass_flag+0
+    bmi alreadyon
+    
+    ; Enable timer
+    lda #%11000000                  ; USER_VIA_T1
+    sta SHEILA_USER_VIA_R14_IER
+    sta bass_flag+0                 ; Has top bit set
+    lda #%10000001                  ; Set period to 1
+    jmp set_bitbang_pitch
+.alreadyon
+    rts
+}
+
+; in: A has second byte
+.do_normal_tone
+{
+    tay
+    lda firstbyte
+    jsr sn_chip_write
+    tya
+    jmp sn_chip_write
+}
+
+;in: A has second byte
+.do_tone_1
+{
+    cmp #%01000000                  ; Bit 7 is always clear
+    bcs do_bass
+
+    ; Bass is now off. Was it previously on?
+    bit bass_flag+1
+    bpl do_normal_tone
+    
+    ; Turn off IRQ, reset flag
+    pha
+    lda #%00100000
+    sta SHEILA_USER_VIA_R14_IER
+    sta SHEILA_USER_VIA_R13_IFR     ; clear
+    lda #0
+    sta bass_flag+1
+    lda u2writeval                  ; restore vol
+    jsr sn_chip_write_with_attenuation
+    pla
+    jmp do_normal_tone
+
+.do_bass
+    jsr set_up_timer_values
+    sta u2latchlo                   ; Tone 1 bass timer lo
+    sty u2latchhi                   ; Tone 1 bass timer hi
+    
+    ; Is bass already on?
+    bit bass_flag+1
+    bmi alreadyon
+
+    ; Enable timer
+    sta SHEILA_USER_VIA_R4_T2C_L    ; Tone 1 bass timer lo
+    sty SHEILA_USER_VIA_R5_T2C_H    ; Tone 1 bass timer hi
+    lda #%10100000                  ; USER_VIA_T2
+    sta SHEILA_USER_VIA_R14_IER
+    sta SHEILA_USER_VIA_R13_IFR     ; Force IRQ
+    sta bass_flag+1                 ; Has top bit set
+    lda #%10100001                  ; Set period to 1
+    jmp set_bitbang_pitch
+
+.alreadyon
+    rts
+}
+
+;in: A has second byte
+.do_tone_2
+{
+    cmp #%01000000                  ; Bit 7 is always clear
+    bcs do_bass
+
+    ; Bass is now off. Was it previously on?
+    bit bass_flag+2
+    bpl do_normal_tone
+    
+    ; Turn off IRQ, reset flag
+    pha
+    lda #%00100000
+    sta SHEILA_SYS_VIA_R14_IER
+    sta SHEILA_SYS_VIA_R13_IFR      ; Clear
+    lda #0
+    sta bass_flag+2
+    lda s2writeval                  ; Restore vol
+    jsr sn_chip_write_with_attenuation
+    pla
+    jmp do_normal_tone
+
+.do_bass
+    jsr set_up_timer_values
+    sta s2latchlo                   ; Tone 2 bass timer lo
+    sty s2latchhi                   ; Tone 2 bass timer hi
+
+    ; Is bass already on?
+    bit bass_flag+2
+    bmi alreadyon
+
+    ; Enable timer
+    sta SHEILA_SYS_VIA_R4_T2C_L     ; Tone 2 bass timer lo
+    sty SHEILA_SYS_VIA_R5_T2C_H     ; Tone 2 bass timer hi
+
+    lda #%10100000                  ; SYS_VIA_T2
+    sta SHEILA_SYS_VIA_R14_IER
+    sta SHEILA_SYS_VIA_R13_IFR      ; Force IRQ
+    sta bass_flag+2                 ; Has top bit set
+
+    lda #%11000001                  ; Set period to 1
+    jmp set_bitbang_pitch
+.alreadyon
+    rts
+}
+
 .track_title        SKIP 30
 .track_artist       SKIP 30
 .track_year         SKIP 30
 .track_speed        SKIP 2
 .track_length       SKIP 2
 .irq_rate           SKIP 2
+
+.firstbyte 
+    EQUB 0
 
 IF HEADER_CONTAINS_FRAME_COUNT
 .frame_count
@@ -575,3 +781,6 @@ IF DEBUG AND SOFTBASS_ENABLED
 .bass_count
     EQUW 0
 ENDIF
+
+.bass_flag
+    EQUB 0, 0, 0

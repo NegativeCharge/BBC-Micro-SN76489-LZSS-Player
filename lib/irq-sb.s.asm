@@ -1,14 +1,15 @@
-.irq_initialized    EQUB 0
+.irq_initialized    
+	EQUB 0
 
 .irq_init
 {
-	php
-	sei
-
     lda irq_initialized
     bne skip
 
-    lda #0
+	php
+	sei
+
+    lda #1
     sta irq_initialized
 
     lda IRQ_VECTOR_LO
@@ -34,14 +35,18 @@
 	lda SHEILA_USER_VIA_R4_T2C_L                    ; Clear User VIA T2
 	lda SHEILA_SYS_VIA_R4_T2C_L                     ; Clear Sys VIA T2
 
-.skip
 	cli
 	plp
+
+.skip
 	rts
 }
 
 .irq_deinit
 {
+	php
+	sei
+
     ; Restore old interrupt vector
     lda old_irq_vector+1
     sta IRQ_VECTOR_LO
@@ -49,6 +54,7 @@
     sta IRQ_VECTOR_HI            
 
     cli
+	plp
     rts
 }
 
