@@ -64,6 +64,9 @@ IF SHOW_UI AND DEBUG
 	sta writeptr+1
 
     ldy #0
+    jsr printString
+    equs "Bank: ", 0
+
     lda current_swram_bank
     jsr write_hex_byte
 ENDIF
@@ -146,6 +149,68 @@ align $100
 
     jsr get_byte
     sta irq_rate+1
+
+IF HEADER_CONTAINS_FRAME_COUNT
+    \\ Read 24-bit frame count value into three bytes
+    jsr get_byte
+    sta frame_count+0
+    sta progress_interval+0
+
+    jsr get_byte
+    sta frame_count+1
+    sta progress_interval+1
+
+    jsr get_byte
+    sta frame_count+2
+    sta progress_interval+2
+
+    ; Calculate progress interval
+    ldy #6
+.divide_by_2
+    lsr progress_interval+2
+    ror progress_interval+1
+    ror progress_interval+0
+    dey
+    bne divide_by_2
+
+    IF SHOW_UI AND DEBUG
+
+    ldy #0
+    lda #LO(debug_frame_count)
+	sta writeptr+0
+	lda #HI(debug_frame_count)
+	sta writeptr+1
+
+    lda frame_count+2
+    jsr write_hex_byte
+
+    iny
+    lda frame_count+1
+    jsr write_hex_byte
+
+    iny
+    lda frame_count+0
+    jsr write_hex_byte
+    
+    ldy #0
+    lda #LO(debug_progress_interval)
+	sta writeptr+0
+	lda #HI(debug_progress_interval)
+	sta writeptr+1
+
+    lda progress_interval+2
+    jsr write_hex_byte
+
+    iny
+    lda progress_interval+1
+    jsr write_hex_byte
+
+    iny
+    lda progress_interval+0
+    jsr write_hex_byte
+    
+    ENDIF
+ENDIF
 
     \\ Read song length - seconds (8-bit), minutes (8-bit)
     jsr get_byte
@@ -462,6 +527,18 @@ ENDIF
 .track_speed        SKIP 2
 .track_length       SKIP 2
 .irq_rate           SKIP 2
+
+
+IF HEADER_CONTAINS_FRAME_COUNT
+.frame_count
+    EQUB 0,0,0
+.progress_interval
+    EQUB 0,0,0
+.progress_counter
+    EQUB 0,0,0
+.progress_index
+    EQUB 0
+ENDIF
 
 IF CHECK_EOF
 .eof_flag

@@ -1,9 +1,11 @@
-INCLUDE "constants.h.asm"
+INCLUDE "constants.softbass.h.asm"
 
 ORG     ZERO_PAGE_START
 GUARD   ZERO_PAGE_END
 
 INCLUDE LZSS_PLAYER_H
+
+INCLUDE IRQ_H
 
 IF SHOW_UI
     INCLUDE ".\lib\ui.h.asm"
@@ -22,7 +24,7 @@ GUARD   SCREEN
 
 .start
     INCLUDE ".\lib\io.s.asm"
-    INCLUDE ".\lib\irq.s.asm"
+    INCLUDE IRQ_S
 
 IF DEBUG
     INCLUDE ".\debug.s.asm"
@@ -139,14 +141,28 @@ IF SHOW_UI
     sta row_counter+0
     sta row_counter+1
 
-    sta pad
+IF DEBUG AND SOFTBASS_ENABLED
+    sta bass_count+0
+    sta bass_count+1
 ENDIF
 
-    jsr sn_chip_reset
+    sta pad
 
-    sei                         ; Disable interrupts
+    sta progress_counter
+    sta progress_index
+    jsr erase_row
+
+    lda #$93
+    sta progress_bar_addr-2
+
+    lda #$ea
+    sta progress_bar_addr-1
+
+    lda #$b5
+    sta progress_bar_addr+32
+ENDIF
+
     jsr play
-    cli                         ; Enable interrupts
 
 IF LOOP
     lda song_ptr_init+0

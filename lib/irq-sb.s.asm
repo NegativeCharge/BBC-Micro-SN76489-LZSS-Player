@@ -1,14 +1,15 @@
-.irq_initialized    EQUB 0
+.irq_initialized    
+	EQUB 0
 
 .irq_init
 {
-	php
-	sei
-
     lda irq_initialized
     bne skip
 
-    lda #0
+	php
+	sei
+
+    lda #1
     sta irq_initialized
 
     lda IRQ_VECTOR_LO
@@ -21,10 +22,10 @@
     lda #>new_irq_vector
     sta IRQ_VECTOR_HI
 
-	lda #%01111111                                  ; All interrupts off
+	lda #%00111101                                  ; All interrupts off except SYS_VIA T1 and VSYNC
 	sta SHEILA_USER_VIA_R14_IER
 	sta SHEILA_SYS_VIA_R14_IER
-	lda #%01000000                                  ; Enable continuous interrupts for USER_VIA t1
+	lda #%01000000                                  ; Enable continuous interrupts for USER_VIA T1
     sta SHEILA_USER_VIA_R11_ACR
     sta SHEILA_SYS_VIA_R11_ACR
 	lda #%00000001
@@ -34,14 +35,18 @@
 	lda SHEILA_USER_VIA_R4_T2C_L                    ; Clear User VIA T2
 	lda SHEILA_SYS_VIA_R4_T2C_L                     ; Clear Sys VIA T2
 
-.skip
 	cli
 	plp
+
+.skip
 	rts
 }
 
 .irq_deinit
 {
+	php
+	sei
+
     ; Restore old interrupt vector
     lda old_irq_vector+1
     sta IRQ_VECTOR_LO
@@ -49,6 +54,7 @@
     sta IRQ_VECTOR_HI            
 
     cli
+	plp
     rts
 }
 
@@ -60,12 +66,46 @@
     lda SHEILA_SYS_VIA_R13_IFR
 	bpl old_irq_vector
     
+	lda #%00000010              					; V-Sync
+    bit SHEILA_SYS_VIA_R13_IFR
+	bne VSYNC
+
+	lda #%01000000              					; Timer 1 mask bit
+    bit SHEILA_SYS_VIA_R13_IFR
+    bne SYS_VIA_T1
+
     and SHEILA_SYS_VIA_R14_IER
     and #%00100000                                  ; Changes A and V flag, but is ok in this case
 	bne SYS_VIA_T2
 
 .old_irq_vector
     jmp $ffff                                       ; Self-modified
+
+.VSYNC
+	sta SHEILA_SYS_VIA_R13_IFR
+IF SHOW_UI
+IF SHOW_FX
+    jsr update_fx_array
+    jsr poll_fx
+ENDIF
+    jsr updateRowData
+    jsr updateTicks
+ENDIF
+
+	lda %11111100
+	rti
+
+.SYS_VIA_T1
+	sta SHEILA_SYS_VIA_R13_IFR
+    jsr play_frame
+    
+IF SHOW_UI
+    jsr incrementRowCounter
+    jsr updateProgressBar
+ENDIF
+
+	lda %11111100
+	rti
 
 .SYS_VIA_T2
 s2latchlo=*+1
@@ -154,54 +194,3 @@ u1writeval=*+1
     lda %11111100
 	rti
 }
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Wait for next frame
-;
-.wait_frame
-    lda #%01000000              					; Timer 1 mask bit
-    bit SHEILA_SYS_VIA_R13_IFR
-    bne processSysViaT1
-    bne wait_frame
-
-    lda #%00000010              					; V-Sync
-    bit SHEILA_SYS_VIA_R13_IFR
-    bne processVsync
-
-    jmp wait_frame
-
-.processVsync
-    sta SHEILA_SYS_VIA_R13_IFR
-
-IF SHOW_UI
-IF SHOW_FX
-    jsr update_fx_array
-    jsr poll_fx
-ENDIF
-    jsr updateRowData
-    jsr updateTicks
-ENDIF
-    jmp wait_frame
-
-.processSysViaT1
-    sta SHEILA_SYS_VIA_R13_IFR
-    jsr play_frame
-
-IF SHOW_UI
-    jsr incrementRowCounter
-    jsr updateProgressBar
-ENDIF
-
-IF CHECK_EOF
-    lda eof_flag
-    beq wait_frame
-ELSE
-    lda song_ptr + 1
-    cmp #>song_end
-    bne wait_frame
-    lda song_ptr + 0
-    cmp #<song_end
-    bne wait_frame
-ENDIF
-
-	jmp reset

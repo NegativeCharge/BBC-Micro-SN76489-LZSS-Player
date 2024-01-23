@@ -92,15 +92,19 @@
 .update_fx_array {
 
     ldy #4
-    ldx #1
+    ldx #1							; Start at register 1 (highest 6 bits for each channel)
     stx temp_x
 
 .loop
     lda decoded_registers,x         ; Data bytes for tone channel / latch/data byte for noise
     cpx #9
     bne skip_adjust
-    and #3                          ; Noise - lowest two bits hold low, medium or high, unless tuned
+    and #%00000011                  ; Noise - lowest two bits hold low, medium or high, unless tuned
+	asl a:asl a:asl a
+	jmp skip_continue
 .skip_adjust
+	lsr a
+.skip_continue
     sta temp_a
     inx
     lda decoded_registers,X         ; Ensure channel isn't silent
