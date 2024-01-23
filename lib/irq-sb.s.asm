@@ -17,14 +17,15 @@
     lda IRQ_VECTOR_HI
     sta old_irq_vector+2
 
-    lda #<new_irq_vector
+    lda #<Interrupt_service_routine
     sta IRQ_VECTOR_LO
-    lda #>new_irq_vector
+    lda #>Interrupt_service_routine
     sta IRQ_VECTOR_HI
 
 	lda #%00111101                                  ; All interrupts off except SYS_VIA T1 and VSYNC
-	sta SHEILA_USER_VIA_R14_IER
 	sta SHEILA_SYS_VIA_R14_IER
+	lda #%01111111
+	sta SHEILA_USER_VIA_R14_IER
 	lda #%01000000                                  ; Enable continuous interrupts for USER_VIA T1
     sta SHEILA_USER_VIA_R11_ACR
     sta SHEILA_SYS_VIA_R11_ACR
@@ -47,6 +48,9 @@
 	php
 	sei
 
+	lda #0
+	sta irq_initialized
+
     ; Restore old interrupt vector
     lda old_irq_vector+1
     sta IRQ_VECTOR_LO
@@ -58,7 +62,7 @@
     rts
 }
 
-.new_irq_vector
+.Interrupt_service_routine
 	lda SHEILA_USER_VIA_R13_IFR
 	bmi USER_VIA
 

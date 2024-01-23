@@ -385,6 +385,8 @@ ENDIF
     lda #%01000000
     sta SHEILA_SYS_VIA_R13_IFR
 
+    jsr irq_deinit
+
 .sn_chip_reset
 {
     ; Silence channels 0, 1, 2, 3
@@ -439,20 +441,78 @@ ENDIF
 
 .output {
 
-    jsr decode_regs
+    ldy #7
+    ldx #0
+    stx current_reg
 
-IF CHECK_EOF
+.reg_loop
+    lda registers, x
+    cpx #0
+    beq case_0
+    cpx #1
+    beq case_1
+    cpx #2
+    beq case_0
+    cpx #3
+    beq case_1
+    cpx #4
+    beq case_0
+    cpx #5
+    beq case_1
+    
+.case_0
+    stx temp_x
+    sta temp_a
+    and #%00001111
+    ldx current_reg
+    sta decoded_registers, x        \\ Tone - Latch      (0)
+    
+    lda temp_a
+    lsr a
+    lsr a
+    lsr a
+    lsr a
+
+    inc current_reg
+    cpx #9
+    beq skip
+    inc current_reg
+
+.skip
+    ldx current_reg
+    sta decoded_registers, x        \\ Attenuation       (2)
+
+    cpx #9
+    beq decode_continue
+    dec current_reg
+    jmp decode_continue
+
+.case_1                             ; Compressed registers 1, 3, or 5 => Registers 1, 4, 7
+    stx temp_x
+
+    ldx current_reg
+    sta decoded_registers, x        \\ Tone - Data       (1)
+    inc current_reg
+    inc current_reg
+
+.decode_continue
+    ldx temp_x
+    inx
+    dey
+    bne reg_loop
+
     ; Check register 9 (CH3 Noise) for eof marker
     ldx #9                      ; Tone 3
     lda decoded_registers,x
+IF CHECK_EOF
     cmp #$08
     beq eof
+ENDIF
     ora masks, x
     cmp last_noise_byte
     beq no_vol_3
     sta last_noise_byte
     jsr sn_chip_write
-ENDIF
 
 .no_vol_3
     ldx #10                     ; Volume 3
@@ -520,74 +580,9 @@ ENDIF
 IF DEBUG AND SOFTBASS_ENABLED
     jsr debug_bass_flags
 ENDIF
-    jsr sn_chip_write_with_attenuation
+    jmp sn_chip_write_with_attenuation
 
 .no_vol_2
-
-    rts
-}
-
-.decode_regs
-{
-    ldy #7
-    ldx #0
-    stx current_reg
-
-.reg_loop
-    lda registers, x
-    cpx #0
-    beq case_0
-    cpx #1
-    beq case_1
-    cpx #2
-    beq case_0
-    cpx #3
-    beq case_1
-    cpx #4
-    beq case_0
-    cpx #5
-    beq case_1
-    
-.case_0
-    stx temp_x
-    sta temp_a
-    and #%00001111
-    ldx current_reg
-    sta decoded_registers, x        \\ Tone - Latch      (0)
-    
-    lda temp_a
-    lsr a
-    lsr a
-    lsr a
-    lsr a
-
-    inc current_reg
-    cpx #9
-    beq skip
-    inc current_reg
-
-.skip
-    ldx current_reg
-    sta decoded_registers, x        \\ Attenuation       (2)
-
-    cpx #9
-    beq decode_continue
-    dec current_reg
-    jmp decode_continue
-
-.case_1                             ; Compressed registers 1, 3, or 5 => Registers 1, 4, 7
-    stx temp_x
-
-    ldx current_reg
-    sta decoded_registers, x        \\ Tone - Data       (1)
-    inc current_reg
-    inc current_reg
-
-.decode_continue
-    ldx temp_x
-    inx
-    dey
-    bne reg_loop
 
     rts
 }
