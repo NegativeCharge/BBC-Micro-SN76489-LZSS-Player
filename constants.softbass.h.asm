@@ -33,7 +33,7 @@ SCREEN                  = $7c00
 \\ Not needed for 7ch format - included in header
 DEFAULT_TRACK_SPEED         = $4e1e     \\ 50Hz = $4e1e, 60Hz = $4119, 200Hz = $1386, 882Hz = $046c, 2000Hz = $01f2 (1000000/x - 2)
 
-DEBUG                       = TRUE
+DEBUG                       = FALSE
 DEBUG_RASTER                = FALSE
 SHOW_UI                     = TRUE
 SHOW_FX                     = TRUE
@@ -50,10 +50,10 @@ ELSE
     PLAYER_BKGND            = ".\ui\player4.bin"
 ENDIF
 
-DISK0_PARTS                 = 4
+DISK0_PARTS                 = 1
 DISK2_PARTS                 = 0
 TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\prehistoric_tale_softbass"
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\secret_desire_softbass"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE0_PREFIX     = ":0."
 TRACK_DST_DRIVE2_PREFIX     = ":2."

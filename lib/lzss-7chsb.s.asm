@@ -415,7 +415,7 @@ ENDIF
 {
     php
     sei
-    ldx #&ff
+    ldx #%11111111
     stx SHEILA_SYS_VIA_R3_DDRA
     sta SHEILA_SYS_VIA_PORT_A
     inx
@@ -423,7 +423,7 @@ ENDIF
     nop
     nop
     nop
-    lda #8
+    lda #%00001000
     sta SHEILA_SYS_VIA_PORT_B
     cli
     plp

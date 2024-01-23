@@ -158,7 +158,9 @@ IF SHOW_UI
 ENDIF
 
     jsr sn_chip_reset
+    sei
     jsr play
+    cli
 
 IF LOOP
     lda song_ptr_init+0
