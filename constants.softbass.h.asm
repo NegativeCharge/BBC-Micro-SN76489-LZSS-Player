@@ -51,10 +51,10 @@ ELSE
     PLAYER_BKGND            = ".\ui\player4.bin"
 ENDIF
 
-DISK0_PARTS                 = 1
+DISK0_PARTS                 = 4
 DISK2_PARTS                 = 0
 TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\secret_desire_softbass"
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\prehistoric_tale_softbass"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE0_PREFIX     = ":0."
 TRACK_DST_DRIVE2_PREFIX     = ":2."
