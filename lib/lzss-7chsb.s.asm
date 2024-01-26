@@ -312,9 +312,8 @@ ENDIF
     sty bptr
     sty cur_pos
 
-    jsr output
-
     jsr irq_init
+    jsr output
 
 .play_loop
     
@@ -698,7 +697,7 @@ ENDIF
     sta temp_a
     lda #%00100000
     sta SHEILA_USER_VIA_R14_IER
-    sta SHEILA_USER_VIA_R4_T2C_L     ; clear
+    sta SHEILA_USER_VIA_R13_IFR     ; clear
     lda #0
     sta bass_flag+1
     lda u2writeval                  ; restore vol
@@ -746,7 +745,7 @@ ENDIF
     sta temp_a
     lda #%00100000
     sta SHEILA_SYS_VIA_R14_IER
-    sta SHEILA_SYS_VIA_R4_T2C_L     ; Clear
+    sta SHEILA_SYS_VIA_R13_IFR      ; Clear
     lda #0
     sta bass_flag+2
     lda s2writeval                  ; Restore vol
