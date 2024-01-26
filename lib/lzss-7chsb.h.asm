@@ -28,10 +28,15 @@
 .cur_pos            SKIP     1
 .chn_bits           SKIP     1
 
-.last_noise_byte    SKIP     1
-.last_atten_byte    SKIP     1
-
 .current_reg        SKIP     1
 .temp_a             SKIP     1
 .temp_x             SKIP     1
 .temp_y             SKIP     1
+
+.bit_data           EQUB     1
+
+.registers
+    EQUB 0,0,0,0,0,0,0
+
+.decoded_registers   
+    EQUB 0,0,0,0,0,0,0,0,0,0,0

@@ -22,16 +22,23 @@
 ;
 ; BBC Micro / BeebAsm by Negative Charge, November 2023
 
-.registers
-    EQUB 0,0,0,0,0,0,0
-
-.decoded_registers   
-    EQUB 0,0,0,0,0,0,0,0,0,0,0
-
 .masks
     EQUB CH0TONELATCH, 0, CH0VOL, CH1TONELATCH, 0, CH1VOL, CH2TONELATCH, 0, CH2VOL, CH3TONELATCH, CH3VOL
 
-.bit_data    EQUB   1
+; in: A has second byte. out: A has timer lo, Y has timer hi
+MACRO SET_UP_TIMER_VALUES
+{
+    ; Mask out bit 6 of data byte
+    and #%00111111
+    tay
+    lda first_byte
+    asl a
+    asl a
+    asl a
+    asl a
+    ora #%00000110
+}
+ENDMACRO
 
 end_ptr = *+1
     lda $ffff
@@ -276,8 +283,17 @@ ENDIF
     ; Init all channels:
     ldx #6
     ldy #0
-    sty last_noise_byte
-    sty last_atten_byte
+    sty last_register_values+0
+    sty last_register_values+1
+    sty last_register_values+2
+    sty last_register_values+3
+    sty last_register_values+4
+    sty last_register_values+5
+    sty last_register_values+6
+    sty last_register_values+7
+    sty last_register_values+8
+    sty last_register_values+9
+    sty last_register_values+10
     jsr get_byte
 
 .clear
@@ -385,8 +401,6 @@ ENDIF
     lda #%01000000
     sta SHEILA_SYS_VIA_R13_IFR
 
-    jsr irq_deinit
-
 .sn_chip_reset
 {
     ; Silence channels 0, 1, 2, 3
@@ -429,6 +443,7 @@ ENDIF
     sta SHEILA_SYS_VIA_PORT_B
     cli
     plp
+    
     rts
 }
 
@@ -505,21 +520,26 @@ ENDIF
     ldx #9                      ; Tone 3
     lda decoded_registers,x
 IF CHECK_EOF
-    cmp #$08
+    cmp #%00001000
     beq eof
 ENDIF
     ora masks, x
-    cmp last_noise_byte
-    beq no_vol_3
-    sta last_noise_byte
+    cmp last_register_values+9
+    beq no_tone_3
+    sta last_register_values+9
     jsr sn_chip_write
 
-.no_vol_3
+.no_tone_3
     ldx #10                     ; Volume 3
     lda decoded_registers,x
     ora masks, x
+    cmp last_register_values+10
+    beq no_vol_3
+
+    sta last_register_values+10
     jsr sn_chip_write_with_attenuation
 
+.no_vol_3
     ldx #0
     lda decoded_registers,x
     ora masks, x
@@ -529,6 +549,7 @@ ENDIF
     ora masks, x
     jsr do_tone_0
 
+.no_tone_0
     ldx #3
     lda decoded_registers,x
     ora masks, x
@@ -538,6 +559,7 @@ ENDIF
     ora masks, x
     jsr do_tone_1
  
+ .no_tone_1
     ldx #6
     lda decoded_registers,x
     ora masks, x
@@ -547,10 +569,15 @@ ENDIF
     ora masks, x
     jsr do_tone_2
  
+ .no_tone_2
     ldx #2                      ; Volume 0
     lda decoded_registers,x
     ora masks, x
     sta u1writeval
+    cmp last_register_values+0
+    beq no_vol_0
+
+    sta last_register_values+0
     bit bass_flag+0
     bmi no_vol_0
 IF DEBUG AND SOFTBASS_ENABLED
@@ -563,6 +590,10 @@ ENDIF
     lda decoded_registers,x
     ora masks, x
     sta u2writeval
+    cmp last_register_values+5
+    beq no_vol_1
+
+    sta last_register_values+5
     bit bass_flag+1
     bmi no_vol_1
 IF DEBUG AND SOFTBASS_ENABLED
@@ -575,6 +606,10 @@ ENDIF
     lda decoded_registers,x
     ora masks, x
     sta s2writeval
+    cmp last_register_values+8
+    beq no_vol_2
+
+    sta last_register_values+8
     bit bass_flag+2
     bmi no_vol_2
 IF DEBUG AND SOFTBASS_ENABLED
@@ -595,21 +630,6 @@ ENDIF
     jmp sn_chip_write
 }
 
-; in: A has second byte. out: A has timer lo, Y has timer hi
-.set_up_timer_values
-{
-    ; Mask out bit 6 of data byte
-    and #%00111111
-    tay
-    lda first_byte
-    asl a
-    asl a
-    asl a
-    asl a
-    ora #%00000110
-    rts
-}
-
 ;in: A has second byte
 .do_tone_0
 {
@@ -621,7 +641,7 @@ ENDIF
     bpl do_normal_tone
 
     ; Turn off IRQ, reset flag
-    pha
+    sta temp_a
     lda #%01000000
     sta SHEILA_USER_VIA_R14_IER
     sta SHEILA_USER_VIA_R13_IFR     ; Clear
@@ -629,14 +649,14 @@ ENDIF
     sta bass_flag+0
     lda u1writeval                  ; Restore volume
     jsr sn_chip_write_with_attenuation
-    pla
+    lda temp_a
     jmp do_normal_tone
 
 .do_bass
 IF DEBUG AND SOFTBASS_ENABLED
     jsr debug_bass
 ENDIF
-    jsr set_up_timer_values
+    SET_UP_TIMER_VALUES
     sta SHEILA_USER_VIA_R6_T1L_L    ; Tone 0 bass timer_lo
     sty SHEILA_USER_VIA_R7_T1L_H    ; Tone 0 bass timer hi
 
@@ -675,22 +695,22 @@ ENDIF
     bpl do_normal_tone
     
     ; Turn off IRQ, reset flag
-    pha
+    sta temp_a
     lda #%00100000
     sta SHEILA_USER_VIA_R14_IER
-    sta SHEILA_USER_VIA_R13_IFR     ; clear
+    sta SHEILA_USER_VIA_R4_T2C_L     ; clear
     lda #0
     sta bass_flag+1
     lda u2writeval                  ; restore vol
     jsr sn_chip_write_with_attenuation
-    pla
+    lda temp_a
     jmp do_normal_tone
 
 .do_bass
 IF DEBUG AND SOFTBASS_ENABLED
     jsr debug_bass
 ENDIF
-    jsr set_up_timer_values
+    SET_UP_TIMER_VALUES
     sta u2latchlo                   ; Tone 1 bass timer lo
     sty u2latchhi                   ; Tone 1 bass timer hi
     
@@ -723,19 +743,19 @@ ENDIF
     bpl do_normal_tone
     
     ; Turn off IRQ, reset flag
-    pha
+    sta temp_a
     lda #%00100000
     sta SHEILA_SYS_VIA_R14_IER
-    sta SHEILA_SYS_VIA_R13_IFR      ; Clear
+    sta SHEILA_SYS_VIA_R4_T2C_L     ; Clear
     lda #0
     sta bass_flag+2
     lda s2writeval                  ; Restore vol
     jsr sn_chip_write_with_attenuation
-    pla
+    lda temp_a
     jmp do_normal_tone
 
 .do_bass
-    jsr set_up_timer_values
+    SET_UP_TIMER_VALUES
     sta s2latchlo                   ; Tone 2 bass timer lo
     sty s2latchhi                   ; Tone 2 bass timer hi
 
@@ -824,6 +844,9 @@ ENDIF
 .track_speed        SKIP 2
 .track_length       SKIP 2
 .irq_rate           SKIP 2
+
+.last_register_values
+    EQUB 0,0,0,0,0,0,0,0,0,0,0
 
 .first_byte 
     EQUB 0

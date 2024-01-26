@@ -184,6 +184,7 @@ ENDIF
 
     jmp reinit
 ELSE
+    jsr irq_deinit
     jmp *
 ENDIF
 
