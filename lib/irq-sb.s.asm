@@ -12,14 +12,17 @@
     lda #1
     sta irq_initialized
 
+	lda #not(%00000010) and %11111111
+	sta $279 											; Stop OS seeing VSYNC interrupts
+
     lda IRQ_VECTOR_LO
     sta old_irq_vector+1
     lda IRQ_VECTOR_HI
     sta old_irq_vector+2
 
-    lda #<Interrupt_service_routine
+    lda #<interrupt_service_routine
     sta IRQ_VECTOR_LO
-    lda #>Interrupt_service_routine
+    lda #>interrupt_service_routine
     sta IRQ_VECTOR_HI
 
 	lda #%00111101                                  ; All interrupts off except SYS_VIA T1 and VSYNC
@@ -62,14 +65,18 @@
     rts
 }
 
-.Interrupt_service_routine
+.interrupt_service_routine
 	lda SHEILA_USER_VIA_R13_IFR
 	bmi USER_VIA
 
 .NOT_USER_VIA
     lda SHEILA_SYS_VIA_R13_IFR
 	bpl old_irq_vector
-    
+
+    and SHEILA_SYS_VIA_R14_IER
+    and #%00100000                                  ; Changes A and V flag, but is ok in this case
+	bne SYS_VIA_T2
+
 	lda #%00000010              					; V-Sync
     bit SHEILA_SYS_VIA_R13_IFR
 	bne VSYNC
@@ -78,15 +85,17 @@
     bit SHEILA_SYS_VIA_R13_IFR
     bne SYS_VIA_T1
 
-    and SHEILA_SYS_VIA_R14_IER
-    and #%00100000                                  ; Changes A and V flag, but is ok in this case
-	bne SYS_VIA_T2
+.exit_isr
+    lda $fc
+	rti
 
 .old_irq_vector
     jmp $ffff                                       ; Self-modified
 
 .VSYNC
 	sta SHEILA_SYS_VIA_R13_IFR
+	dec $240 										; Decrement vsync counter now OS isn't doing it
+
 IF SHOW_UI
 IF SHOW_FX
     jsr update_fx_array
@@ -96,8 +105,7 @@ ENDIF
     jsr updateTicks
 ENDIF
 
-	lda %11111100
-	rti
+	jmp exit_isr
 
 .SYS_VIA_T1
 	sta SHEILA_SYS_VIA_R13_IFR
@@ -108,8 +116,7 @@ IF SHOW_UI
     jsr updateProgressBar
 ENDIF
 
-	lda %11111100
-	rti
+	jmp exit_isr
 
 .SYS_VIA_T2
 s2latchlo=*+1
@@ -136,8 +143,7 @@ s2writeval=*+1
 	lda #%00001000
 	sta SHEILA_SYS_VIA_PORT_B
 
-    lda %11111100
-	rti
+    jmp exit_isr
 }
 
 .USER_VIA
@@ -170,8 +176,7 @@ u2writeval=*+1
 	lda #%00001000
 	sta SHEILA_SYS_VIA_PORT_B
 
-	lda %11111100
-	rti
+	jmp exit_isr
 }
 
 .USER_VIA_T1
@@ -195,6 +200,5 @@ u1writeval=*+1
 	lda #%00001000
 	sta SHEILA_SYS_VIA_PORT_B
 	
-    lda %11111100
-	rti
+    jmp exit_isr
 }
