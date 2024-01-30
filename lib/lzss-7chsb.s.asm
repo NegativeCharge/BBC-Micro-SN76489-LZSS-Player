@@ -754,6 +754,9 @@ ENDIF
     jmp do_normal_tone
 
 .do_bass
+IF DEBUG AND SOFTBASS_ENABLED
+    jsr debug_bass
+ENDIF
     SET_UP_TIMER_VALUES
     sta s2latchlo                   ; Tone 2 bass timer lo
     sty s2latchhi                   ; Tone 2 bass timer hi

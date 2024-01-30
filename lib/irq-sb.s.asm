@@ -12,9 +12,6 @@
     lda #1
     sta irq_initialized
 
-	lda #not(%00000010) and %11111111
-	sta $279 											; Stop OS seeing VSYNC interrupts
-
     lda IRQ_VECTOR_LO
     sta old_irq_vector+1
     lda IRQ_VECTOR_HI
@@ -66,6 +63,14 @@
 }
 
 .interrupt_service_routine
+
+	lda $fc
+	pha
+	txa
+	pha
+	tya
+	pha
+
 	lda SHEILA_USER_VIA_R13_IFR
 	bmi USER_VIA
 
@@ -86,7 +91,12 @@
     bne SYS_VIA_T1
 
 .exit_isr
-    lda $fc
+    pla
+	tay
+	pla
+	tax
+	pla
+	sta $fc
 	rti
 
 .old_irq_vector

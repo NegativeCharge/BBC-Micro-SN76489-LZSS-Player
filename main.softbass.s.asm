@@ -146,6 +146,23 @@ IF DEBUG AND SOFTBASS_ENABLED
     sta bass_count+1
 ENDIF
 
+    lda #%01000000
+    sta SHEILA_USER_VIA_R14_IER
+    sta SHEILA_USER_VIA_R13_IFR     ; Clear
+    lda #0
+    sta bass_flag+0
+
+    lda #%00100000
+    sta SHEILA_USER_VIA_R14_IER
+    sta SHEILA_USER_VIA_R13_IFR     ; Clear
+    lda #0
+    sta bass_flag+1
+
+    lda #%00100000
+    sta SHEILA_SYS_VIA_R14_IER
+    sta SHEILA_SYS_VIA_R13_IFR      ; Clear
+    lda #0
+    sta bass_flag+2
     sta pad
 
     sta progress_counter
@@ -165,6 +182,8 @@ ENDIF
     jsr play
 
 IF LOOP
+    jsr irq_deinit
+
     lda song_ptr_init+0
     sta song_ptr+0
 
