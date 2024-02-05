@@ -115,6 +115,8 @@ ENDIF
     jsr updateTicks
 ENDIF
 
+	jsr checkForKeyPress
+
 	jmp exit_isr
 
 .SYS_VIA_T1
@@ -175,7 +177,7 @@ u2writeval=*+1
 {
 .invert
 	beq irq_silent
-	ora #%00001111
+	ora #%00001111									
 .irq_silent
 	sta SHEILA_SYS_VIA_PORT_A
     lda #0
@@ -199,7 +201,7 @@ u1writeval=*+1
 	lda #%10011111
 .invert
 	beq irq_silent
-	ora #%00001111
+	ora #%00001111									
 .irq_silent
 	sta SHEILA_SYS_VIA_PORT_A
     lda #0

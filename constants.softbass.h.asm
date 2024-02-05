@@ -46,7 +46,7 @@ HEADER_CONTAINS_FRAME_COUNT = TRUE
 LOOP                        = TRUE
 
 IF USE_SWRAM
-    PLAYER_BKGND            = ".\ui\player6c.bin"
+    PLAYER_BKGND            = ".\ui\player6e.bin"
 ELSE
     PLAYER_BKGND            = ".\ui\player4.bin"
 ENDIF
@@ -54,7 +54,7 @@ ENDIF
 DISK0_PARTS                 = 2
 DISK2_PARTS                 = 0
 TRACK_PARTS                 = DISK0_PARTS + DISK2_PARTS
-TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\nearly_there_softbass"
+TRACK_SRC_FILENAME_PREFIX   = ".\tracks\lzc1\eternity_softbass"
 TRACK_SRC_FILENAME_SUFFIX   = ".lzc"
 TRACK_DST_DRIVE0_PREFIX     = ":0."
 TRACK_DST_DRIVE2_PREFIX     = ":2."

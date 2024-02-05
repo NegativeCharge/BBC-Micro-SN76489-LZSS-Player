@@ -25,7 +25,7 @@
 .masks
     EQUB CH0TONELATCH, 0, CH0VOL, CH1TONELATCH, 0, CH1VOL, CH2TONELATCH, 0, CH2VOL, CH3TONELATCH, CH3VOL
 
-; in: A has second byte. out: A has timer lo, Y has timer hi
+; In: A has second byte. Out: A has timer lo, Y has timer hi
 MACRO SET_UP_TIMER_VALUES
 {
     ; Mask out bit 6 of data byte
@@ -430,6 +430,31 @@ ENDIF
 {
     php
     sei
+
+    ; Check if volume control needs applying
+    ; First check if bit 7 is set, 0=DATA 1=LATCH
+
+	bit psg_latch_bit
+	beq no_volume
+
+    ; This is a latch register write
+    ; and check bit 4 to see if it is a volume register write, 1=VOLUME, 0=PITCH
+	bit psg_volume_bit
+	beq no_volume		            ; Not a volume register write
+
+	tay				
+	and #$f0		
+	sta psg_register
+	tya				
+	and #$0f		
+
+	tay				
+	lda volume_table, y
+	and #$0f			
+	ora volume_mask		        ; All bits set to mask audio, or clear to leave as is
+	ora psg_register
+
+.no_volume
     ldx #%11111111
     stx SHEILA_SYS_VIA_R3_DDRA
     sta SHEILA_SYS_VIA_PORT_A
@@ -444,6 +469,16 @@ ENDIF
     plp
     
     rts
+}
+
+; Set volume mask
+; X contains volume flag (1=on,0=off)
+; 
+.set_volume_mask
+{
+	lda volume_mask_t,x
+	sta volume_mask
+	rts
 }
 
 IF CHECK_EOF
@@ -571,7 +606,15 @@ ENDIF
  .no_tone_2
     ldx #2                      ; Volume 0
     lda decoded_registers,x
+    
+    and #$0f		
+	tay				
+	lda volume_table, y
+	and #$0f			
+	ora volume_mask
+
     ora masks, x
+
     sta u1writeval
     cmp last_register_values+0
     beq no_vol_0
@@ -587,6 +630,13 @@ ENDIF
 .no_vol_0
     ldx #5                      ; Volume 1
     lda decoded_registers,x
+    
+    and #$0f		
+	tay				
+	lda volume_table, y
+	and #$0f			
+	ora volume_mask
+    
     ora masks, x
     sta u2writeval
     cmp last_register_values+5
@@ -603,6 +653,13 @@ ENDIF
 .no_vol_1
     ldx #8                      ; Volume 2
     lda decoded_registers,x
+
+    and #$0f		
+	tay				
+	lda volume_table, y
+	and #$0f			
+	ora volume_mask
+    
     ora masks, x
     sta s2writeval
     cmp last_register_values+8

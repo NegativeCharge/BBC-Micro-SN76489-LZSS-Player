@@ -18,6 +18,10 @@
 .osfile_endaddr
     equd 0
 
+; Keyboard handling
+.last_key_pressed
+    equb 0
+
 ;--------------------------------------------------------------
 ; Load a file from disk to memory (SWR supported)
 ; Loads in sector granularity so will always write to page aligned address
@@ -168,3 +172,131 @@ ENDIF
     rts
 }
 ENDIF
+
+; Keyboard Handler
+.checkForKeyPress
+{
+     \\ Check for pressed keys
+	lda #121
+	ldx #&10
+	jsr OSBYTE
+
+    \\ Still holding same key
+    CPX last_key_pressed
+    beq exit
+
+    \\ Remember current key
+    stx last_key_pressed
+
+	\\ Any key pressed?
+    cpx #$ff
+    beq exit
+
+.checkLeft
+    \\ Has down arrow been pressed?
+    cpx #$29
+    bne checkRight
+
+    jsr volume_down
+    jmp exit
+
+.checkRight
+    \\ Has up arrow been pressed?
+    cpx #$39
+    bne exit
+
+    jsr volume_up
+
+.exit
+    rts
+}
+
+.volume_up
+{
+	ldx volume
+	cpx #$0f
+	beq local_rts
+	inx
+	stx volume
+	jmp set_volume
+}
+
+.local_rts 
+    rts
+
+.volume_down
+{
+	ldx volume
+	beq local_rts
+	dex 
+	stx volume
+	jmp set_volume
+}
+.set_volume
+{
+	lda #$0f
+	sta volume_store
+
+	; Set volume table
+	lda #0
+	sta volume_interp+0
+	sta volume_interp+1
+	
+	cpx #0
+	beq done_loopx
+	inc volume_store
+.loopx
+	dec volume_store
+	clc
+	adc #17
+	dex
+	bne loopx
+.done_loopx
+	sta volume_increment
+
+	; x=0 on entry
+.loopx2
+	clc
+	lda volume_interp+1
+	adc volume_store
+	sta volume_table,x
+
+	lda volume_interp+0
+	clc
+	adc volume_increment
+	sta volume_interp+0
+	lda volume_interp+1
+	adc #0
+	sta volume_interp+1
+
+	; Offset volume
+	inx
+	cpx #$10
+	bne loopx2
+
+	rts
+}
+
+.psg_register	
+    EQUB 0
+.psg_volume_bit
+    EQUB 16		; Bit 4
+.psg_latch_bit	
+    EQUB 128	; Bit 7
+
+.volume_table	
+    EQUB 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+
+.volume_interp      
+    EQUW 0
+.volume_increment   
+    EQUB 0
+.volume_store       
+    EQUB 0
+
+.volume			
+    EQUB 15
+.volume_mask	
+    EQUB 0
+.volume_mask_t	
+    EQUB 15, 0

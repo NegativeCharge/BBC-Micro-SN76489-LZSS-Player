@@ -169,7 +169,7 @@ ENDIF
     sta progress_index
     jsr erase_row
 
-    lda #$93
+    lda #ttxt_gfx_progress
     sta progress_bar_addr-2
 
     lda #$ea
